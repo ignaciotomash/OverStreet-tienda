@@ -30,6 +30,15 @@ export default function Hero({ categoria }: HeroProps) {
             {'Comunicación directa con tu vendedor de máxima confianza.'}
           </p>
         </Reveal>
+
+        <Reveal delay={220}>
+          <button
+            onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })}
+            className={`${mono.className} mt-6 border border-black px-5 py-2.5 text-xs uppercase tracking-widest transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
+          >
+            Ver catálogo
+          </button>
+        </Reveal>
       </div>
 
       {/* mascota de marca: parado junto al título, recortado sin fondo */}

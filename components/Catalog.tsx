@@ -39,7 +39,7 @@ export default function Catalog({ categoria, subcategoriaInicial, onChangeCatego
   };
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
+    <section id="catalogo" className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
       <Reveal>
         <div className="mb-6 flex flex-col gap-4 border-b border-black pb-4 sm:flex-row sm:items-end sm:justify-between">
           <nav role="tablist" aria-label="Categoría de catálogo" className="flex w-fit border border-black text-sm">
