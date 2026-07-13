@@ -22,7 +22,7 @@ export default function ProductCard({ producto }: ProductCardProps) {
       {/* ojal de la etiqueta */}
       <div className="absolute left-2.5 top-2.5 z-10 h-3 w-3 rounded-full border border-black bg-[#ECEAE4]" />
 
-      <Swatch seed={producto.id} aspectClassName="aspect-[4/3]" foto={producto.foto} alt={producto.nombre} />
+      <Swatch seed={producto.id} aspectClassName="aspect-[3/4]" foto={producto.foto} alt={producto.nombre} />
 
       {agotado && (
         <div className="stamp absolute right-2.5 top-2.5 z-10 rotate-[-8deg] border-2 border-[#C1272D] px-1.5 py-0.5">

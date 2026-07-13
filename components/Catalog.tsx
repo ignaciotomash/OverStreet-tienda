@@ -21,7 +21,7 @@ export default function Catalog({ categoria }: CatalogProps) {
   );
 
   return (
-    <section className="mx-auto max-w-6xl px-5 py-14">
+    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
       <Reveal>
         <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3 border-b border-black pb-3">
           <h2 className={`${display.className} text-2xl`}>
@@ -66,7 +66,7 @@ export default function Catalog({ categoria }: CatalogProps) {
           No hay productos en esta subcategoría por ahora.
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {productos.map((producto, i) => (
             <Reveal key={producto.id} delay={(i % 3) * 90}>
               <ProductCard producto={producto} />
