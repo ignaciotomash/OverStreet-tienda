@@ -5,9 +5,11 @@ import Swatch from './Swatch';
 
 interface ProductCardProps {
   producto: Producto;
+  subcategoria?: string;
+  onAntesDeNavegar?: () => void;
 }
 
-export default function ProductCard({ producto }: ProductCardProps) {
+export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }: ProductCardProps) {
   const agotado =
     producto.categoria === 'tecnologia'
       ? producto.stockUnidades === 0
@@ -15,7 +17,8 @@ export default function ProductCard({ producto }: ProductCardProps) {
 
   return (
     <Link
-      href={`/producto/${producto.id}`}
+      href={`/producto/${producto.id}${subcategoria && subcategoria !== 'todos' ? `?subcategoria=${subcategoria}` : ''}`}
+      onClick={onAntesDeNavegar}
       aria-label={`Ver detalle de ${producto.nombre}`}
       className="tag-card group relative block border border-black bg-[#ECEAE4] transition-transform duration-300 hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
     >

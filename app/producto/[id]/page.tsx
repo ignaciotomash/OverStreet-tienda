@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { PRODUCTOS, getProductoPorId } from '@/lib/products';
 import ProductDetail from '@/components/ProductDetail';
@@ -20,5 +21,9 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
     notFound();
   }
 
-  return <ProductDetail producto={producto} />;
+  return (
+    <Suspense fallback={null}>
+      <ProductDetail producto={producto} />
+    </Suspense>
+  );
 }

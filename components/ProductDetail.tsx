@@ -1,9 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { display, body, mono } from '@/lib/fonts';
-import { formatearPrecio, getSubcategoriaLabel, type Categoria, type Producto } from '@/lib/products';
+import { formatearPrecio, getSubcategoriaLabel, type Producto } from '@/lib/products';
 import NavBar from './NavBar';
 import Footer from './Footer';
 import Reveal from './Reveal';
@@ -14,27 +14,21 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ producto }: ProductDetailProps) {
-  const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const subcategoria = searchParams.get('subcategoria');
   const agotado =
     producto.categoria === 'tecnologia'
       ? producto.stockUnidades === 0
       : producto.talles?.every((t) => !t.disponible);
 
-  // Si cambian de pestaña desde acá, los mandamos al catálogo ya filtrado
-  // en esa categoría, en vez de dejarlos en la página de un solo producto.
-  const irACategoria = (categoria: Categoria) => {
-    router.push(`/?categoria=${categoria}`);
-  };
-
   return (
     <div className={`${display.variable} ${body.variable} ${mono.variable} min-h-screen bg-white text-black ${body.className}`}>
-      <NavBar categoria={producto.categoria} onChange={irACategoria} />
+      <NavBar />
 
       <section className="mx-auto max-w-5xl px-5 pb-20 pt-10">
         <Reveal>
           <Link
-            href={`/?categoria=${producto.categoria}`}
+            href={`/?categoria=${producto.categoria}${subcategoria ? `&subcategoria=${subcategoria}` : ''}`}
             className={`${mono.className} inline-flex items-center gap-2 text-sm text-black/60 transition-colors hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
           >
             ← Volver al catálogo
@@ -43,7 +37,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
 
         <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <Reveal direction="left">
-            <div className="relative border border-black bg-[#ECEAE4]">
+            <div className="relative max-h-[65vh] border border-black bg-[#ECEAE4]">
               <div className="absolute left-4 top-4 z-10 h-4 w-4 rounded-full border border-black bg-[#ECEAE4]" />
               {agotado && (
                 <div className="absolute right-4 top-4 z-10 rotate-[-8deg] border-2 border-[#C1272D] px-2 py-0.5">

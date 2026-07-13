@@ -1,32 +1,70 @@
 'use client';
 
-import { useState } from 'react';
-import { display, mono } from '@/lib/fonts';
+import { useEffect, useState } from 'react';
+import { mono } from '@/lib/fonts';
 import { PRODUCTOS, SUBCATEGORIAS, type Categoria } from '@/lib/products';
 import Reveal from './Reveal';
 import ProductCard from './ProductCard';
 
 interface CatalogProps {
   categoria: Categoria;
+  subcategoriaInicial?: string;
+  onChangeCategoria: (categoria: Categoria) => void;
 }
 
 const TODOS = 'todos';
 
-export default function Catalog({ categoria }: CatalogProps) {
+export default function Catalog({ categoria, subcategoriaInicial, onChangeCategoria }: CatalogProps) {
   const [subcategoria, setSubcategoria] = useState<string>(TODOS);
+
+  useEffect(() => {
+    setSubcategoria(subcategoriaInicial ?? TODOS);
+  }, [categoria, subcategoriaInicial]);
   const subcategorias = SUBCATEGORIAS[categoria];
 
   const productos = PRODUCTOS.filter(
     (p) => p.categoria === categoria && (subcategoria === TODOS || p.subcategoria === subcategoria),
   );
 
+  useEffect(() => {
+    const savedScrollY = sessionStorage.getItem('catalogScrollY');
+    if (savedScrollY) {
+      sessionStorage.removeItem('catalogScrollY');
+      requestAnimationFrame(() => window.scrollTo(0, Number(savedScrollY)));
+    }
+  }, []);
+
+  const guardarScroll = () => {
+    sessionStorage.setItem('catalogScrollY', String(window.scrollY));
+  };
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
       <Reveal>
-        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3 border-b border-black pb-3">
-          <h2 className={`${display.className} text-2xl`}>
-            {categoria === 'indumentaria' ? 'Indumentaria' : 'Tecnología'}
-          </h2>
+        <div className="mb-6 flex flex-col gap-4 border-b border-black pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <nav role="tablist" aria-label="Categoría de catálogo" className="flex w-fit border border-black text-sm">
+            <button
+              role="tab"
+              aria-selected={categoria === 'indumentaria'}
+              onClick={() => onChangeCategoria('indumentaria')}
+              className={`${mono.className} px-4 py-2 text-xs uppercase tracking-wide transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black sm:text-sm ${
+                categoria === 'indumentaria' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/5'
+              }`}
+            >
+              Indumentaria
+            </button>
+            <button
+              role="tab"
+              aria-selected={categoria === 'tecnologia'}
+              onClick={() => onChangeCategoria('tecnologia')}
+              className={`${mono.className} border-l border-black px-4 py-2 text-xs uppercase tracking-wide transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black sm:text-sm ${
+                categoria === 'tecnologia' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/5'
+              }`}
+            >
+              Tecnología
+            </button>
+          </nav>
+
           <span className={`${mono.className} text-sm text-black/50`}>{productos.length} productos</span>
         </div>
       </Reveal>
@@ -69,7 +107,7 @@ export default function Catalog({ categoria }: CatalogProps) {
         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {productos.map((producto, i) => (
             <Reveal key={producto.id} delay={(i % 3) * 90}>
-              <ProductCard producto={producto} />
+              <ProductCard producto={producto} subcategoria={subcategoria} onAntesDeNavegar={guardarScroll} />
             </Reveal>
           ))}
         </div>

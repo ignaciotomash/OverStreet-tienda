@@ -14,19 +14,21 @@ export default function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoriaInicial: Categoria = searchParams.get('categoria') === 'tecnologia' ? 'tecnologia' : 'indumentaria';
+  const subcategoriaInicial = searchParams.get('subcategoria') ?? undefined;
   const [categoria, setCategoria] = useState<Categoria>(categoriaInicial);
 
   const cambiarCategoria = (nueva: Categoria) => {
     setCategoria(nueva);
     router.replace(`/?categoria=${nueva}`, { scroll: false });
+    sessionStorage.removeItem('catalogScrollY');
   };
 
   return (
     <div className={`${display.variable} ${body.variable} ${mono.variable} min-h-screen bg-white text-black ${body.className}`}>
-      <NavBar categoria={categoria} onChange={cambiarCategoria} />
+      <NavBar />
       <Hero categoria={categoria} />
       <Marquee />
-      <Catalog key={categoria} categoria={categoria} />
+      <Catalog key={categoria} categoria={categoria} subcategoriaInicial={subcategoriaInicial} onChangeCategoria={cambiarCategoria} />
       <Marquee reverse />
       <Footer />
     </div>
