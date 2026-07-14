@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
+import { useAuthModal } from '@/lib/auth-modal-context';
 import Swatch from './Swatch';
 
 interface ProductCardProps {
@@ -13,9 +13,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }: ProductCardProps) {
-  const { push } = useRouter();
   const { isSignedIn } = useAuth();
   const { addItem, removeItem, isInCart } = useCart();
+  const { openSignIn } = useAuthModal();
 
   const agotado =
     producto.categoria === 'tecnologia'
@@ -26,7 +26,7 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }
     e.preventDefault();
     e.stopPropagation();
     if (!isSignedIn) {
-      push('/sign-in');
+      openSignIn();
       return;
     }
     if (isInCart(producto.id)) {

@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, getSubcategoriaLabel, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
+import { useAuthModal } from '@/lib/auth-modal-context';
 import NavBar from './NavBar';
 import Footer from './Footer';
 import Reveal from './Reveal';
@@ -17,8 +18,8 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ producto }: ProductDetailProps) {
   const searchParams = useSearchParams();
-  const { push } = useRouter();
   const { isSignedIn } = useAuth();
+  const { openSignIn } = useAuthModal();
   const subcategoria = searchParams.get('subcategoria');
   const { addItem, removeItem, isInCart } = useCart();
   const agotado =
@@ -140,7 +141,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
               ) : (
                 <button
                   onClick={() => {
-                    if (!isSignedIn) { push('/sign-in'); return; }
+                    if (!isSignedIn) { openSignIn(); return; }
                     addItem(producto!);
                   }}
                   className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black`}
