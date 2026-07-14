@@ -33,7 +33,13 @@ export default function Hero({ categoria }: HeroProps) {
 
         <Reveal delay={220}>
           <button
-            onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => {
+              const el = document.getElementById('catalogo');
+              if (el) {
+                const top = el.getBoundingClientRect().top + window.scrollY - 20;
+                window.scrollTo({ top, behavior: 'smooth' });
+              }
+            }}
             className={`${mono.className} mt-6 border border-black px-10 py-3.5 text-xs uppercase tracking-widest transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
           >
             Ver catálogo

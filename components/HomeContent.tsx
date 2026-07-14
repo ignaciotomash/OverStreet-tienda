@@ -26,11 +26,13 @@ export default function HomeContent() {
   return (
     <div className={`${display.variable} ${body.variable} ${mono.variable} min-h-screen bg-white text-black ${body.className}`}>
       <NavBar />
-      <Hero categoria={categoria} />
+      <div className="pt-16">
+        <Hero categoria={categoria} />
       <Marquee />
       <Catalog key={categoria} categoria={categoria} subcategoriaInicial={subcategoriaInicial} onChangeCategoria={cambiarCategoria} />
       <Marquee reverse />
       <Footer />
+      </div>
     </div>
   );
 }

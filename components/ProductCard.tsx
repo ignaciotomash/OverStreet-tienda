@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, type Producto } from '@/lib/products';
+import { useCart } from '@/lib/cart-context';
 import Swatch from './Swatch';
 
 interface ProductCardProps {
@@ -10,10 +11,22 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }: ProductCardProps) {
+  const { addItem, removeItem, isInCart } = useCart();
+
   const agotado =
     producto.categoria === 'tecnologia'
       ? producto.stockUnidades === 0
       : producto.talles?.every((t) => !t.disponible);
+
+  const toggleCarrito = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isInCart(producto.id)) {
+      removeItem(producto.id);
+    } else {
+      addItem(producto);
+    }
+  };
 
   return (
     <Link
@@ -67,10 +80,22 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }
       </div>
 
       {/* código de barras decorativo */}
-      <div className="flex h-5 items-end gap-[1.5px] border-t border-black/10 px-3 pb-1.5 pt-1 opacity-40">
-        {Array.from({ length: 28 }).map((_, i) => (
-          <span key={i} className="bg-black" style={{ width: 1, height: (i * 7) % 5 === 0 ? '100%' : '60%' }} />
-        ))}
+      <div className="flex items-center gap-2 border-t border-black/10 px-3 py-1.5">
+        <button
+          onClick={toggleCarrito}
+          className={`${mono.className} z-20 whitespace-nowrap border px-2 py-0.5 text-[9px] uppercase tracking-wider transition-colors hover:bg-black hover:text-white ${
+            isInCart(producto.id)
+              ? 'border-black bg-black text-white'
+              : 'border-black/30 text-black/60 hover:border-black hover:text-black'
+          }`}
+        >
+          {isInCart(producto.id) ? '✓ En carrito' : '+ Carrito'}
+        </button>
+        <div className="flex h-4 flex-1 items-end gap-[1.5px] opacity-40">
+          {Array.from({ length: 22 }).map((_, i) => (
+            <span key={i} className="bg-black" style={{ width: 1, height: (i * 7) % 5 === 0 ? '100%' : '60%' }} />
+          ))}
+        </div>
       </div>
     </Link>
   );

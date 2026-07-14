@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, getSubcategoriaLabel, type Producto } from '@/lib/products';
+import { useCart } from '@/lib/cart-context';
 import NavBar from './NavBar';
 import Footer from './Footer';
 import Reveal from './Reveal';
@@ -16,6 +17,7 @@ interface ProductDetailProps {
 export default function ProductDetail({ producto }: ProductDetailProps) {
   const searchParams = useSearchParams();
   const subcategoria = searchParams.get('subcategoria');
+  const { addItem, removeItem, isInCart } = useCart();
   const agotado =
     producto.categoria === 'tecnologia'
       ? producto.stockUnidades === 0
@@ -25,7 +27,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
     <div className={`${display.variable} ${body.variable} ${mono.variable} min-h-screen bg-white text-black ${body.className}`}>
       <NavBar />
 
-      <section className="mx-auto max-w-5xl px-5 pb-20 pt-10">
+      <section className="mx-auto max-w-5xl px-5 pb-20 pt-24">
         <Reveal>
           <Link
             href={`/?categoria=${producto.categoria}${subcategoria ? `&subcategoria=${subcategoria}` : ''}`}
@@ -46,7 +48,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                   </span>
                 </div>
               )}
-              <Swatch seed={producto.id} foto={producto.foto} alt={producto.nombre} />
+              <Swatch seed={producto.id} aspectClassName="aspect-[4/3]" foto={producto.foto} alt={producto.nombre} />
             </div>
           </Reveal>
 
@@ -123,6 +125,24 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
             >
               Consultar por Instagram
             </a>
+
+            <div className="mt-3">
+              {isInCart(producto.id) ? (
+                <button
+                  onClick={() => removeItem(producto.id)}
+                  className={`${mono.className} w-full border border-black/30 px-5 py-3 text-sm uppercase tracking-wide transition-colors hover:border-black hover:bg-black hover:text-white`}
+                >
+                  Quitar del carrito
+                </button>
+              ) : (
+                <button
+                  onClick={() => addItem(producto!)}
+                  className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black`}
+                >
+                  Agregar al carrito
+                </button>
+              )}
+            </div>
           </Reveal>
         </div>
       </section>
