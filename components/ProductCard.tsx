@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
@@ -11,6 +13,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }: ProductCardProps) {
+  const { push } = useRouter();
+  const { isSignedIn } = useAuth();
   const { addItem, removeItem, isInCart } = useCart();
 
   const agotado =
@@ -21,6 +25,10 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }
   const toggleCarrito = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isSignedIn) {
+      push('/sign-in');
+      return;
+    }
     if (isInCart(producto.id)) {
       removeItem(producto.id);
     } else {

@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, getSubcategoriaLabel, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
@@ -16,6 +17,8 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ producto }: ProductDetailProps) {
   const searchParams = useSearchParams();
+  const { push } = useRouter();
+  const { isSignedIn } = useAuth();
   const subcategoria = searchParams.get('subcategoria');
   const { addItem, removeItem, isInCart } = useCart();
   const agotado =
@@ -136,7 +139,10 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                 </button>
               ) : (
                 <button
-                  onClick={() => addItem(producto!)}
+                  onClick={() => {
+                    if (!isSignedIn) { push('/sign-in'); return; }
+                    addItem(producto!);
+                  }}
                   className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black`}
                 >
                   Agregar al carrito
