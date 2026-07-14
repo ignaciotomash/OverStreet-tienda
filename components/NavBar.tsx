@@ -81,12 +81,10 @@ export default function NavBar() {
             <Show when="signed-out">
               <button
                 onClick={() => setMenuAbierto(!menuAbierto)}
-                className={`${mono.className} relative z-50 flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-1.5 md:hidden`}
+                className={`${mono.className} relative z-50 flex h-9 w-9 shrink-0 items-center justify-center md:hidden`}
                 aria-label="Menu"
               >
-                <span className={`block h-[1.5px] w-5 bg-black transition-transform duration-300 ${menuAbierto ? 'translate-y-[4.5px] rotate-45' : ''}`} />
-                <span className={`block h-[1.5px] w-5 bg-black transition-opacity duration-300 ${menuAbierto ? 'opacity-0' : ''}`} />
-                <span className={`block h-[1.5px] w-5 bg-black transition-transform duration-300 ${menuAbierto ? '-translate-y-[4.5px] -rotate-45' : ''}`} />
+                <Image src="/persona.png" alt="Usuario" width={20} height={20} className="h-5 w-5" />
               </button>
             </Show>
           </div>
