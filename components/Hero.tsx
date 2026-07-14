@@ -36,7 +36,7 @@ export default function Hero({ categoria }: HeroProps) {
             onClick={() => {
               const el = document.getElementById('catalogo');
               if (el) {
-                const top = el.getBoundingClientRect().top + window.scrollY - 20;
+                const top = el.getBoundingClientRect().top + window.scrollY - 30;
                 window.scrollTo({ top, behavior: 'smooth' });
               }
             }}

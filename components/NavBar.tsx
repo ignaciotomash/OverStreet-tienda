@@ -15,7 +15,7 @@ export default function NavBar() {
   return (
     <>
       <header className="fixed left-0 right-0 top-0 z-40 border-b border-black bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-5 sm:py-6">
           <Link
             href="/"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -43,9 +43,9 @@ export default function NavBar() {
 
             <button
               onClick={() => setCartAbierto(true)}
-              className={`${mono.className} relative flex items-center gap-1.5 border border-black px-2.5 py-1 text-[11px] uppercase tracking-wider transition-colors hover:bg-black hover:text-white`}
+              className={`${mono.className} relative flex h-9 w-9 items-center justify-center rounded-full border border-black transition-colors hover:bg-gray-300 hover:text-black`}
             >
-              <Image src="/carrito.png" alt="Carrito" width={14} height={14} className="h-3.5 w-3.5" />
+              <Image src="/carrito.png" alt="Carrito" width={18} height={18} className="h-4.5 w-4.5" />
               {totalItems > 0 && (
                 <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-black text-[9px] text-white">
                   {totalItems}
