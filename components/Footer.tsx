@@ -13,7 +13,7 @@ export default function Footer() {
             </p>
           </div>
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/l.overstreet_/"
             target="_blank"
             rel="noreferrer"
             className={`${mono.className} border border-black px-4 py-2 text-sm uppercase tracking-wide transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}

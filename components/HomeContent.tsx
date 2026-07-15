@@ -3,14 +3,18 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { display, body, mono } from '@/lib/fonts';
-import type { Categoria } from '@/lib/products';
+import type { Categoria, Producto } from '@/lib/products';
 import NavBar from '@/components/NavBar';
 import Hero from '@/components/Hero';
 import Marquee from '@/components/Marquee';
 import Catalog from '@/components/Catalog';
 import Footer from '@/components/Footer';
 
-export default function HomeContent() {
+interface HomeContentProps {
+  productos: Producto[];
+}
+
+export default function HomeContent({ productos }: HomeContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoriaInicial: Categoria = searchParams.get('categoria') === 'tecnologia' ? 'tecnologia' : 'indumentaria';
@@ -29,7 +33,7 @@ export default function HomeContent() {
       <div className="pt-16">
         <Hero categoria={categoria} />
       <Marquee />
-      <Catalog key={categoria} categoria={categoria} subcategoriaInicial={subcategoriaInicial} onChangeCategoria={cambiarCategoria} />
+      <Catalog key={categoria} categoria={categoria} subcategoriaInicial={subcategoriaInicial} onChangeCategoria={cambiarCategoria} productos={productos} />
       <Marquee reverse />
       <Footer />
       </div>

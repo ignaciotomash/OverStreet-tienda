@@ -92,36 +92,38 @@ export default function NavBar() {
       </header>
 
       {/* Mobile menu overlay */}
-      {menuAbierto && (
+      <div
+        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          menuAbierto ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={() => setMenuAbierto(false)}
+      >
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
-          onClick={() => setMenuAbierto(false)}
+          className={`${mono.className} absolute right-4 top-16 flex w-fit flex-col gap-2 border border-black bg-white p-3 transition-all duration-300 ${
+            menuAbierto ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+          }`}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className={`${mono.className} absolute right-4 top-16 flex w-fit flex-col gap-2 border border-black bg-white p-3`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button
-                  onClick={() => setMenuAbierto(false)}
-                  className="w-full border border-black/30 px-6 py-2.5 text-center text-[11px] uppercase tracking-wider transition-colors hover:border-black hover:bg-black hover:text-white"
-                >
-                  Ingresar
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button
-                  onClick={() => setMenuAbierto(false)}
-                  className="w-full border border-black bg-black px-6 py-2.5 text-center text-[11px] uppercase tracking-wider text-white transition-colors hover:bg-white hover:text-black"
-                >
-                  Registrarse
-                </button>
-              </SignUpButton>
-            </Show>
-          </div>
+          <Show when="signed-out">
+            <SignInButton mode="modal">
+              <button
+                onClick={() => setMenuAbierto(false)}
+                className="w-full border border-black/30 px-6 py-2.5 text-center text-[11px] uppercase tracking-wider transition-colors hover:border-black hover:bg-black hover:text-white"
+              >
+                Ingresar
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button
+                onClick={() => setMenuAbierto(false)}
+                className="w-full border border-black bg-black px-6 py-2.5 text-center text-[11px] uppercase tracking-wider text-white transition-colors hover:bg-white hover:text-black"
+              >
+                Registrarse
+              </button>
+            </SignUpButton>
+          </Show>
         </div>
-      )}
+      </div>
 
       <SlideCart abierto={cartAbierto} cerrar={() => setCartAbierto(false)} />
     </>

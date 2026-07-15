@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -10,4 +5,45 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Categoria {
+  indumentaria
+  tecnologia
+}
+
+model Producto {
+  id               String    @id
+  nombre           String
+  precio           Int
+  categoria        Categoria
+  subcategoria     String
+  descripcion      String
+  descripcionLarga String    @map("descripcion_larga")
+  detalles         Json
+  talles           Json?
+  stockUnidades    Int?      @map("stock_unidades")
+  imagenes         Json      @default("[]")
+  agotado          Boolean   @default(false)
+  vistas           Int       @default(0)
+  creadoEn         DateTime  @default(now()) @map("creado_en")
+  actualizadoEn    DateTime  @updatedAt @map("actualizado_en")
+
+  carritoItems CarritoItem[]
+
+  @@map("productos")
+}
+
+model CarritoItem {
+  id            String   @id @default(uuid())
+  usuarioId     String   @map("usuario_id")
+  productoId    String   @map("producto_id")
+  producto      Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  talle         String   @default("")
+  cantidad      Int      @default(1)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  @@unique([usuarioId, productoId, talle])
+  @@map("carrito_items")
 }
