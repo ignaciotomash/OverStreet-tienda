@@ -10,7 +10,13 @@ interface SlideCartProps {
 }
 
 export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
-  const { items, removeItem, clearCart } = useCart();
+  const { items, removeItem, clearCart, updateQuantity } = useCart();
+  const total = items.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+
+  const getStockMaximo = (item: typeof items[0]) =>
+    item.producto.categoria === 'tecnologia'
+      ? (item.producto.stockUnidades ?? 1)
+      : (item.producto.talles?.filter((t) => t.disponible).length ?? 1);
 
   return (
     <>
@@ -50,24 +56,60 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
             <>
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 <ul className="space-y-3">
-                  {items.map((p) => (
-                    <li key={p.id} className="flex items-start justify-between gap-3 border-b border-black/10 pb-3">
-                      <div className="min-w-0 flex-1">
-                        <p className={`${mono.className} text-xs font-bold uppercase`}>{p.nombre}</p>
-                        <p className={`${mono.className} mt-0.5 text-[11px] text-black/50`}>{p.descripcion}</p>
-                        <p className={`${mono.className} mt-1 text-xs`}>{formatearPrecio(p.precio)}</p>
-                      </div>
-                      <button
-                        onClick={() => removeItem(p.id)}
-                        className={`${mono.className} mt-0.5 border border-black/30 px-2 py-0.5 text-[10px] uppercase tracking-wider transition-colors hover:border-black hover:bg-black hover:text-white`}
-                      >
-                        Quitar
-                      </button>
-                    </li>
-                  ))}
+                  {items.map((item) => {
+                    const stock = getStockMaximo(item);
+                    return (
+                      <li key={item.producto.id} className="relative border-b border-black/10 pb-3 pr-16">
+                        <div className="flex items-center gap-1.5">
+                          <p className={`${mono.className} shrink-0 text-xs font-bold uppercase`}>{item.producto.nombre}</p>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => updateQuantity(item.producto.id, Math.max(1, item.cantidad - 1))}
+                              disabled={item.cantidad <= 1}
+                              className={`${mono.className} flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-colors ${
+                                item.cantidad <= 1
+                                  ? 'border-black/15 text-black/25'
+                                  : 'border-black hover:bg-black hover:text-white'
+                              }`}
+                            >
+                              −
+                            </button>
+                            <span className={`${mono.className} min-w-[1.5ch] text-center text-[11px] font-bold`}>
+                              {item.cantidad}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.producto.id, Math.min(stock, item.cantidad + 1))}
+                              disabled={item.cantidad >= stock}
+                              className={`${mono.className} flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-colors ${
+                                item.cantidad >= stock
+                                  ? 'border-black/15 text-black/25'
+                                  : 'border-black hover:bg-black hover:text-white'
+                              }`}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeItem(item.producto.id)}
+                          className={`${mono.className} absolute right-0 top-0 border border-[#C1272D]/30 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#C1272D] transition-colors hover:border-[#C1272D] hover:bg-[#C1272D] hover:text-white`}
+                        >
+                          Quitar
+                        </button>
+                        <p className={`${mono.className} mt-0.5 text-[11px] text-black/50`}>{item.producto.descripcion}</p>
+                        <p className={`${mono.className} mt-1 text-xs`}>
+                          {formatearPrecio(item.producto.precio)} × {item.cantidad} = {formatearPrecio(item.producto.precio * item.cantidad)}
+                        </p>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
               <div className="border-t border-black px-4 py-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>Total</span>
+                  <span className={`${mono.className} text-lg font-bold`}>{formatearPrecio(total)}</span>
+                </div>
                 <button
                   onClick={clearCart}
                   className={`${mono.className} w-full border border-black/30 px-4 py-2 text-xs uppercase tracking-wider transition-colors hover:border-black hover:bg-black hover:text-white`}

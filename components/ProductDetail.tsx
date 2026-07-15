@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
@@ -21,11 +22,20 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
   const { isSignedIn } = useAuth();
   const { openSignIn } = useAuthModal();
   const subcategoria = searchParams.get('subcategoria');
-  const { addItem, removeItem, isInCart } = useCart();
+  const { addItem, removeItem, isInCart, getQuantity, updateQuantity } = useCart();
+  const [cantidad, setCantidad] = useState(1);
+
   const agotado =
     producto.categoria === 'tecnologia'
       ? producto.stockUnidades === 0
       : producto.talles?.every((t) => !t.disponible);
+
+  const stockMaximo = producto.categoria === 'tecnologia'
+    ? (producto.stockUnidades ?? 1)
+    : (producto.talles?.filter((t) => t.disponible).length ?? 1);
+
+  const enCarrito = isInCart(producto.id);
+  const cantidadEnCarrito = getQuantity(producto.id);
 
   return (
     <div className={`${display.variable} ${body.variable} ${mono.variable} min-h-screen bg-white text-black ${body.className}`}>
@@ -130,19 +140,52 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
               Consultar por Instagram
             </a>
 
+            {!agotado && (
+              <div className="mt-4">
+                <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
+                  Cantidad
+                </span>
+                <div className="mt-2 flex items-center gap-3">
+                  <button
+                    onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                    className={`${mono.className} flex h-9 w-9 items-center justify-center border border-black text-lg transition-colors hover:bg-black hover:text-white`}
+                  >
+                    −
+                  </button>
+                  <span className={`${mono.className} min-w-[2ch] text-center text-lg font-bold`}>
+                    {cantidad}
+                  </span>
+                  <button
+                    onClick={() => setCantidad((c) => Math.min(stockMaximo, c + 1))}
+                    className={`${mono.className} flex h-9 w-9 items-center justify-center border border-black text-lg transition-colors hover:bg-black hover:text-white`}
+                  >
+                    +
+                  </button>
+                  <span className={`${mono.className} text-xs text-black/40`}>
+                    (máx. {stockMaximo})
+                  </span>
+                </div>
+              </div>
+            )}
+
             <div className="mt-3">
-              {isInCart(producto.id) ? (
-                <button
-                  onClick={() => removeItem(producto.id)}
-                  className={`${mono.className} w-full border border-black/30 px-5 py-3 text-sm uppercase tracking-wide transition-colors hover:border-black hover:bg-black hover:text-white`}
-                >
-                  Quitar del carrito
-                </button>
+              {enCarrito ? (
+                <div className="space-y-2">
+                  <div className={`${mono.className} flex items-center justify-center gap-2 border border-black/20 py-2 text-xs text-black/50`}>
+                    <span>En carrito: {cantidadEnCarrito}</span>
+                  </div>
+                  <button
+                    onClick={() => removeItem(producto.id)}
+                    className={`${mono.className} w-full border border-[#C1272D]/30 px-5 py-3 text-sm uppercase tracking-wide text-[#C1272D] transition-colors hover:border-[#C1272D] hover:bg-[#C1272D] hover:text-white`}
+                  >
+                    Quitar del carrito
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => {
                     if (!isSignedIn) { openSignIn(); return; }
-                    addItem(producto!);
+                    addItem(producto!, cantidad);
                   }}
                   className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black`}
                 >
