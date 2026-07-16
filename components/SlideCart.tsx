@@ -61,7 +61,7 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                     return (
                       <li key={item.producto.id} className="relative border-b border-black/10 pb-3 pr-16">
                         <div className="flex items-center gap-1.5">
-                          <p className={`${mono.className} shrink-0 text-xs font-bold uppercase`}>{item.producto.nombre}</p>
+                          <p className={`${mono.className} min-w-0 truncate text-xs font-bold uppercase`}>{item.producto.nombre}</p>
                           <div className="flex items-center gap-1 shrink-0">
                             <button
                               onClick={() => updateQuantity(item.producto.id, Math.max(1, item.cantidad - 1))}

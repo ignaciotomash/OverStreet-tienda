@@ -148,7 +148,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                 <div className="mt-2 flex items-center gap-3">
                   <button
                     onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                    className={`${mono.className} flex h-9 w-9 items-center justify-center border border-black text-lg transition-colors hover:bg-black hover:text-white`}
+                    className={`${mono.className} flex h-9 w-9 items-center justify-center rounded-full border border-black text-lg transition-colors hover:bg-black hover:text-white`}
                   >
                     −
                   </button>
@@ -157,7 +157,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                   </span>
                   <button
                     onClick={() => setCantidad((c) => Math.min(stockMaximo, c + 1))}
-                    className={`${mono.className} flex h-9 w-9 items-center justify-center border border-black text-lg transition-colors hover:bg-black hover:text-white`}
+                    className={`${mono.className} flex h-9 w-9 items-center justify-center rounded-full border border-black text-lg transition-colors hover:bg-black hover:text-white`}
                   >
                     +
                   </button>
