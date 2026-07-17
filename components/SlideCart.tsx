@@ -2,7 +2,7 @@
 
 import { mono } from '@/lib/fonts';
 import { formatearPrecio } from '@/lib/products';
-import { useCart } from '@/lib/cart-context';
+import { useCart, cartKey } from '@/lib/cart-context';
 
 interface SlideCartProps {
   abierto: boolean;
@@ -59,12 +59,12 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                   {items.map((item) => {
                     const stock = getStockMaximo(item);
                     return (
-                      <li key={item.producto.id} className="relative border-b border-black/10 pb-3 pr-16">
+                      <li key={cartKey(item.producto.id, item.talle, item.color)} className="relative border-b border-black/10 pb-3 pr-16">
                         <div className="flex items-center gap-1.5">
                           <p className={`${mono.className} min-w-0 truncate text-xs font-bold uppercase`}>{item.producto.nombre}</p>
                           <div className="flex items-center gap-1 shrink-0">
                             <button
-                              onClick={() => updateQuantity(item.producto.id, Math.max(1, item.cantidad - 1))}
+                              onClick={() => updateQuantity(item.producto.id, Math.max(1, item.cantidad - 1), item.talle, item.color)}
                               disabled={item.cantidad <= 1}
                               className={`${mono.className} flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-colors ${
                                 item.cantidad <= 1
@@ -78,7 +78,7 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                               {item.cantidad}
                             </span>
                             <button
-                              onClick={() => updateQuantity(item.producto.id, Math.min(stock, item.cantidad + 1))}
+                              onClick={() => updateQuantity(item.producto.id, Math.min(stock, item.cantidad + 1), item.talle, item.color)}
                               disabled={item.cantidad >= stock}
                               className={`${mono.className} flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-colors ${
                                 item.cantidad >= stock
@@ -91,11 +91,23 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                           </div>
                         </div>
                         <button
-                          onClick={() => removeItem(item.producto.id)}
+                          onClick={() => removeItem(item.producto.id, item.talle, item.color)}
                           className={`${mono.className} absolute right-0 top-0 border border-[#C1272D]/30 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#C1272D] transition-colors hover:border-[#C1272D] hover:bg-[#C1272D] hover:text-white`}
                         >
                           Quitar
                         </button>
+                        {(item.talle || item.color) && (
+                          <p className={`${mono.className} mt-0.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-black/50`}>
+                            {item.talle && <span>{item.talle}</span>}
+                            {item.talle && item.color && <span>·</span>}
+                            {item.color && (
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full border border-black/20"
+                                style={{ backgroundColor: item.color }}
+                              />
+                            )}
+                          </p>
+                        )}
                         <p className={`${mono.className} mt-0.5 text-[11px] text-black/50`}>{item.producto.descripcion}</p>
                         <p className={`${mono.className} mt-1 text-xs`}>
                           {formatearPrecio(item.producto.precio)} × {item.cantidad} = {formatearPrecio(item.producto.precio * item.cantidad)}

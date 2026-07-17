@@ -6,15 +6,21 @@ import type { Producto } from '@/lib/products';
 export interface CartItem {
   producto: Producto;
   cantidad: number;
+  talle?: string;
+  color?: string;
+}
+
+export function cartKey(id: string, talle?: string, color?: string): string {
+  return `${id}__${talle ?? ''}__${color ?? ''}`;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (producto: Producto, cantidad?: number) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, cantidad: number) => void;
-  getQuantity: (id: string) => number;
-  isInCart: (id: string) => boolean;
+  addItem: (producto: Producto, cantidad?: number, talle?: string, color?: string) => void;
+  removeItem: (id: string, talle?: string, color?: string) => void;
+  updateQuantity: (id: string, cantidad: number, talle?: string, color?: string) => void;
+  getQuantity: (id: string, talle?: string, color?: string) => number;
+  isInCart: (id: string, talle?: string, color?: string) => boolean;
   totalItems: number;
   clearCart: () => void;
 }
@@ -31,7 +37,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Migración: si el viejo formato era Producto[], convertir a CartItem[]
         if (Array.isArray(parsed) && parsed.length > 0 && !parsed[0].cantidad) {
           setItems(parsed.map((p: Producto) => ({ producto: p, cantidad: 1 })));
         } else {
@@ -45,35 +50,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = (producto: Producto, cantidad = 1) => {
+  const addItem = (producto: Producto, cantidad = 1, talle?: string, color?: string) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.producto.id === producto.id);
+      const key = cartKey(producto.id, talle, color);
+      const existing = prev.find((item) => cartKey(item.producto.id, item.talle, item.color) === key);
       if (existing) {
         return prev.map((item) =>
-          item.producto.id === producto.id
+          cartKey(item.producto.id, item.talle, item.color) === key
             ? { ...item, cantidad: item.cantidad + cantidad }
             : item
         );
       }
-      return [...prev, { producto, cantidad }];
+      return [...prev, { producto, cantidad, talle, color }];
     });
   };
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.producto.id !== id));
+  const removeItem = (id: string, talle?: string, color?: string) => {
+    const key = cartKey(id, talle, color);
+    setItems((prev) => prev.filter((item) => cartKey(item.producto.id, item.talle, item.color) !== key));
   };
 
-  const updateQuantity = (id: string, cantidad: number) => {
+  const updateQuantity = (id: string, cantidad: number, talle?: string, color?: string) => {
+    const key = cartKey(id, talle, color);
     setItems((prev) =>
       prev.map((item) =>
-        item.producto.id === id ? { ...item, cantidad } : item
+        cartKey(item.producto.id, item.talle, item.color) === key ? { ...item, cantidad } : item
       )
     );
   };
 
-  const getQuantity = (id: string) => items.find((item) => item.producto.id === id)?.cantidad ?? 0;
+  const getQuantity = (id: string, talle?: string, color?: string) => {
+    const key = cartKey(id, talle, color);
+    return items.find((item) => cartKey(item.producto.id, item.talle, item.color) === key)?.cantidad ?? 0;
+  };
 
-  const isInCart = (id: string) => items.some((item) => item.producto.id === id);
+  const isInCart = (id: string, talle?: string, color?: string) => {
+    const key = cartKey(id, talle, color);
+    return items.some((item) => cartKey(item.producto.id, item.talle, item.color) === key);
+  };
 
   const clearCart = () => setItems([]);
 

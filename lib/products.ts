@@ -38,9 +38,12 @@ export interface Producto {
   descripcionLarga: string;
   detalles: string[];
   talles?: Talle[];
+  colores?: string[];
   stockUnidades?: number;
   foto?: string;
 }
+
+export const COLORES_MOCKUP = ['#000000', '#FFFFFF', '#C1272D', '#1E40AF'];
 
 export const formatearPrecio = (valor: number) =>
   valor.toLocaleString('es-AR', {

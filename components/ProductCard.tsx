@@ -1,9 +1,6 @@
 import Link from 'next/link';
-import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, type Producto } from '@/lib/products';
-import { useCart } from '@/lib/cart-context';
-import { useAuthModal } from '@/lib/auth-modal-context';
 import Swatch from './Swatch';
 
 interface ProductCardProps {
@@ -13,28 +10,10 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }: ProductCardProps) {
-  const { isSignedIn } = useAuth();
-  const { addItem, removeItem, isInCart } = useCart();
-  const { openSignIn } = useAuthModal();
-
   const agotado =
     producto.categoria === 'tecnologia'
       ? producto.stockUnidades === 0
       : producto.talles?.every((t) => !t.disponible);
-
-  const toggleCarrito = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isSignedIn) {
-      openSignIn();
-      return;
-    }
-    if (isInCart(producto.id)) {
-      removeItem(producto.id);
-    } else {
-      addItem(producto);
-    }
-  };
 
   return (
     <Link
@@ -51,28 +30,6 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }
             Agotado
           </span>
         </div>
-      )}
-
-      {!agotado && (
-        <button
-          onClick={toggleCarrito}
-          className={`absolute right-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center border backdrop-blur-sm transition-colors ${
-            isInCart(producto.id)
-              ? 'border-black bg-black text-white'
-              : 'border-black/30 bg-[#ECEAE4]/80 text-black/50 hover:border-black hover:text-black'
-          }`}
-          aria-label={isInCart(producto.id) ? 'Quitar del carrito' : 'Agregar al carrito'}
-        >
-          {isInCart(producto.id) ? (
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-          ) : (
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          )}
-        </button>
       )}
 
       <div className="p-3">

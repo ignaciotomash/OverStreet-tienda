@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
-import { formatearPrecio, getSubcategoriaLabel, type Producto } from '@/lib/products';
+import { formatearPrecio, getSubcategoriaLabel, COLORES_MOCKUP, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
 import { useAuthModal } from '@/lib/auth-modal-context';
 import NavBar from './NavBar';
@@ -22,8 +22,10 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
   const { isSignedIn } = useAuth();
   const { openSignIn } = useAuthModal();
   const subcategoria = searchParams.get('subcategoria');
-  const { addItem, removeItem, isInCart, getQuantity, updateQuantity } = useCart();
+  const { addItem, removeItem, isInCart, getQuantity } = useCart();
   const [cantidad, setCantidad] = useState(1);
+  const [talleSeleccionado, setTalleSeleccionado] = useState<string | null>(null);
+  const [colorSeleccionado, setColorSeleccionado] = useState<string | null>(null);
 
   const agotado =
     producto.categoria === 'tecnologia'
@@ -34,8 +36,10 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
     ? (producto.stockUnidades ?? 1)
     : (producto.talles?.filter((t) => t.disponible).length ?? 1);
 
-  const enCarrito = isInCart(producto.id);
-  const cantidadEnCarrito = getQuantity(producto.id);
+  const colores = producto.colores ?? (producto.categoria === 'indumentaria' ? COLORES_MOCKUP : undefined);
+
+  const enCarrito = isInCart(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
+  const cantidadEnCarrito = getQuantity(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
 
   return (
     <div className={`${display.variable} ${body.variable} ${mono.variable} min-h-screen bg-white text-black ${body.className}`}>
@@ -88,18 +92,47 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
             {producto.categoria === 'indumentaria' && producto.talles && (
               <div className="mt-6">
                 <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
-                  Talles disponibles
+                  Talle
                 </span>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {producto.talles.map((t) => (
-                    <span
+                    <button
                       key={t.talle}
-                      className={`${mono.className} flex h-9 min-w-9 items-center justify-center border px-2 text-sm ${
-                        t.disponible ? 'border-black text-black' : 'border-black/20 text-black/25 line-through'
+                      disabled={!t.disponible}
+                      onClick={() => setTalleSeleccionado(t.talle)}
+                      className={`${mono.className} flex h-9 min-w-9 items-center justify-center border px-2 text-sm transition-colors ${
+                        !t.disponible
+                          ? 'cursor-not-allowed border-black/20 text-black/25 line-through'
+                          : talleSeleccionado === t.talle
+                            ? 'border-black bg-black text-white'
+                            : 'border-black text-black hover:bg-black hover:text-white'
                       }`}
                     >
                       {t.talle}
-                    </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {colores && (
+              <div className="mt-4">
+                <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
+                  Color
+                </span>
+                <div className="mt-2 flex gap-2">
+                  {colores.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setColorSeleccionado(color)}
+                      className={`h-7 w-7 rounded-full border-2 transition-all ${
+                        colorSeleccionado === color
+                          ? 'scale-110 border-black'
+                          : 'border-black/20 hover:border-black/50'
+                      }`}
+                      style={{ backgroundColor: color }}
+                      aria-label={color}
+                    />
                   ))}
                 </div>
               </div>
@@ -171,7 +204,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                     <span>En carrito: {cantidadEnCarrito}</span>
                   </div>
                   <button
-                    onClick={() => removeItem(producto.id)}
+                    onClick={() => removeItem(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined)}
                     className={`${mono.className} w-full border border-[#C1272D]/30 px-5 py-3 text-sm uppercase tracking-wide text-[#C1272D] transition-colors hover:border-[#C1272D] hover:bg-[#C1272D] hover:text-white`}
                   >
                     Quitar del carrito
@@ -181,7 +214,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                 <button
                   onClick={() => {
                     if (!isSignedIn) { openSignIn(); return; }
-                    addItem(producto!, cantidad);
+                    addItem(producto, cantidad, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
                   }}
                   className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black`}
                 >
