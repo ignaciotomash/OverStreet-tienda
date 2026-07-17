@@ -43,9 +43,6 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }
       aria-label={`Ver detalle de ${producto.nombre}`}
       className="tag-card group relative block border border-black bg-[#ECEAE4] transition-transform duration-300 hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
     >
-      {/* ojal de la etiqueta */}
-      <div className="absolute left-2.5 top-2.5 z-10 h-3 w-3 rounded-full border border-black bg-[#ECEAE4]" />
-
       <Swatch seed={producto.id} aspectClassName="aspect-[3/4]" foto={producto.foto} alt={producto.nombre} />
 
       {agotado && (
@@ -54,6 +51,28 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }
             Agotado
           </span>
         </div>
+      )}
+
+      {!agotado && (
+        <button
+          onClick={toggleCarrito}
+          className={`absolute right-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center border backdrop-blur-sm transition-colors ${
+            isInCart(producto.id)
+              ? 'border-black bg-black text-white'
+              : 'border-black/30 bg-[#ECEAE4]/80 text-black/50 hover:border-black hover:text-black'
+          }`}
+          aria-label={isInCart(producto.id) ? 'Quitar del carrito' : 'Agregar al carrito'}
+        >
+          {isInCart(producto.id) ? (
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          ) : (
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          )}
+        </button>
       )}
 
       <div className="p-3">
@@ -87,24 +106,6 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar }
         )}
       </div>
 
-      {/* código de barras decorativo */}
-      <div className="flex items-center gap-2 border-t border-black/10 px-3 py-1.5">
-        <button
-          onClick={toggleCarrito}
-          className={`${mono.className} z-20 whitespace-nowrap border px-2 py-0.5 text-[9px] uppercase tracking-wider transition-colors hover:bg-black hover:text-white ${
-            isInCart(producto.id)
-              ? 'border-black bg-black text-white'
-              : 'border-black/30 text-black/60 hover:border-black hover:text-black'
-          }`}
-        >
-          {isInCart(producto.id) ? '✓ En carrito' : '+ Carrito'}
-        </button>
-        <div className="flex h-4 flex-1 items-end gap-[1.5px] opacity-40">
-          {Array.from({ length: 22 }).map((_, i) => (
-            <span key={i} className="bg-black" style={{ width: 1, height: (i * 7) % 5 === 0 ? '100%' : '60%' }} />
-          ))}
-        </div>
-      </div>
     </Link>
   );
 }

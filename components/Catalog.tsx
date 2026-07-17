@@ -71,6 +71,16 @@ export default function Catalog({ categoria, subcategoriaInicial, onChangeCatego
             >
               Tecnología
             </button>
+            <button
+              role="tab"
+              aria-selected={categoria === 'perfumeria'}
+              onClick={() => onChangeCategoria('perfumeria')}
+              className={`${mono.className} border-l border-black px-4 py-2 text-xs uppercase tracking-wide transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black sm:text-sm ${
+                categoria === 'perfumeria' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/5'
+              }`}
+            >
+              Perfumería
+            </button>
           </nav>
 
           <span className={`${mono.className} text-sm text-black/50`}>{productosFiltrados.length} productos</span>
@@ -90,7 +100,7 @@ export default function Catalog({ categoria, subcategoriaInicial, onChangeCatego
           >
             Todos
           </button>
-          {subcategorias.map((sub) => (
+          {subcategorias.filter((sub) => sub.value !== 'todos').map((sub) => (
             <button
               key={sub.value}
               onClick={() => setSubcategoria(sub.value)}

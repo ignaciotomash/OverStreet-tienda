@@ -1,4 +1,4 @@
-export type Categoria = 'indumentaria' | 'tecnologia';
+export type Categoria = 'indumentaria' | 'tecnologia' | 'perfumeria';
 
 export interface Talle {
   talle: string;
@@ -22,6 +22,9 @@ export const SUBCATEGORIAS: Record<Categoria, SubcategoriaOpcion[]> = {
     { value: 'audio', label: 'Audio' },
     { value: 'wearables', label: 'Wearables' },
     { value: 'accesorios', label: 'Accesorios' },
+  ],
+  perfumeria: [
+    { value: 'todos', label: 'Todos' },
   ],
 };
 

@@ -7,7 +7,7 @@ function mapProducto(db: {
   id: string;
   nombre: string;
   precio: number;
-  categoria: "indumentaria" | "tecnologia";
+  categoria: "indumentaria" | "tecnologia" | "perfumeria";
   subcategoria: string;
   descripcion: string;
   descripcionLarga: string;

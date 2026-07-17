@@ -44,7 +44,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
       <section className="mx-auto max-w-5xl px-5 pb-20 pt-24">
         <Reveal>
           <Link
-            href={`/?categoria=${producto.categoria}${subcategoria ? `&subcategoria=${subcategoria}` : ''}`}
+            href={`/catalogo?categoria=${producto.categoria}${subcategoria ? `&subcategoria=${subcategoria}` : ''}`}
             className={`${mono.className} inline-flex items-center gap-2 text-sm text-black/60 transition-colors hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
           >
             ← Volver al catálogo
@@ -54,7 +54,6 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
         <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <Reveal direction="left">
             <div className="relative max-h-[65vh] border border-black bg-[#ECEAE4]">
-              <div className="absolute left-4 top-4 z-10 h-4 w-4 rounded-full border border-black bg-[#ECEAE4]" />
               {agotado && (
                 <div className="absolute right-4 top-4 z-10 rotate-[-8deg] border-2 border-[#C1272D] px-2 py-0.5">
                   <span className={`${mono.className} text-xs font-bold uppercase tracking-wider text-[#C1272D]`}>
@@ -141,11 +140,11 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
             </a>
 
             {!agotado && (
-              <div className="mt-4">
+              <div className="mt-4 text-center">
                 <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
-                  Cantidad
+                  Cantidad (máx. {stockMaximo})
                 </span>
-                <div className="mt-2 flex items-center gap-3">
+                <div className="mt-2 flex items-center justify-center gap-3">
                   <button
                     onClick={() => setCantidad((c) => Math.max(1, c - 1))}
                     className={`${mono.className} flex h-9 w-9 items-center justify-center rounded-full border border-black text-lg transition-colors hover:bg-black hover:text-white`}
@@ -161,14 +160,11 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                   >
                     +
                   </button>
-                  <span className={`${mono.className} text-xs text-black/40`}>
-                    (máx. {stockMaximo})
-                  </span>
                 </div>
               </div>
             )}
 
-            <div className="mt-3">
+            <div className="mt-3 flex justify-center">
               {enCarrito ? (
                 <div className="space-y-2">
                   <div className={`${mono.className} flex items-center justify-center gap-2 border border-black/20 py-2 text-xs text-black/50`}>

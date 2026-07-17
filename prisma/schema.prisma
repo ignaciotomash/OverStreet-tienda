@@ -10,6 +10,7 @@ datasource db {
 enum Categoria {
   indumentaria
   tecnologia
+  perfumeria
 }
 
 model Producto {
