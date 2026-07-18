@@ -195,7 +195,6 @@ const productos = [
 
 async function main() {
   console.log("Limpiando datos existentes...");
-  await prisma.carritoItem.deleteMany();
   await prisma.producto.deleteMany();
 
   console.log("Insertando productos...");
