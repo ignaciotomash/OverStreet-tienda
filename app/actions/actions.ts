@@ -56,3 +56,37 @@ export async function getProductoPorId(id: string): Promise<Producto | null> {
   if (!producto) return null;
   return mapProducto(producto);
 }
+
+export async function createProducto(data: {
+  nombre: string;
+  precio: number;
+  categoria: Categoria;
+  subcategoria: string;
+  descripcion: string;
+  descripcionLarga: string;
+  detalles: string[];
+  talles?: { talle: string; disponible: boolean }[];
+  stockUnidades?: number;
+  imagenes: string[];
+}) {
+  const prefix = data.categoria === 'indumentaria' ? 'ind' : data.categoria === 'tecnologia' ? 'tec' : 'perf';
+  const id = `${prefix}-${Date.now()}`;
+
+  const producto = await prisma.producto.create({
+    data: {
+      id,
+      nombre: data.nombre,
+      precio: data.precio,
+      categoria: data.categoria,
+      subcategoria: data.subcategoria,
+      descripcion: data.descripcion,
+      descripcionLarga: data.descripcionLarga,
+      detalles: data.detalles,
+      talles: data.talles ?? undefined,
+      stockUnidades: data.stockUnidades ?? undefined,
+      imagenes: data.imagenes,
+    },
+  });
+
+  return { success: true, producto: mapProducto(producto) };
+}
