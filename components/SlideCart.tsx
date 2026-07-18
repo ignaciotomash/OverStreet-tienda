@@ -60,36 +60,7 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                     const stock = getStockMaximo(item);
                     return (
                       <li key={cartKey(item.producto.id, item.talle, item.color)} className="relative border-b border-black/10 pb-3 pr-16">
-                        <div className="flex items-center gap-1.5">
-                          <p className={`${mono.className} min-w-0 truncate text-xs font-bold uppercase`}>{item.producto.nombre}</p>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              onClick={() => updateQuantity(item.producto.id, Math.max(1, item.cantidad - 1), item.talle, item.color)}
-                              disabled={item.cantidad <= 1}
-                              className={`${mono.className} flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-colors ${
-                                item.cantidad <= 1
-                                  ? 'border-black/15 text-black/25'
-                                  : 'border-black hover:bg-black hover:text-white'
-                              }`}
-                            >
-                              −
-                            </button>
-                            <span className={`${mono.className} min-w-[1.5ch] text-center text-[11px] font-bold`}>
-                              {item.cantidad}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(item.producto.id, Math.min(stock, item.cantidad + 1), item.talle, item.color)}
-                              disabled={item.cantidad >= stock}
-                              className={`${mono.className} flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-colors ${
-                                item.cantidad >= stock
-                                  ? 'border-black/15 text-black/25'
-                                  : 'border-black hover:bg-black hover:text-white'
-                              }`}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
+                        <p className={`${mono.className} min-w-0 truncate text-xs font-bold uppercase`}>{item.producto.nombre}</p>
                         <button
                           onClick={() => removeItem(item.producto.id, item.talle, item.color)}
                           className={`${mono.className} absolute right-0 top-0 border border-[#C1272D]/30 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#C1272D] transition-colors hover:border-[#C1272D] hover:bg-[#C1272D] hover:text-white`}
@@ -109,9 +80,36 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                           </p>
                         )}
                         <p className={`${mono.className} mt-0.5 text-[11px] text-black/50`}>{item.producto.descripcion}</p>
-                        <p className={`${mono.className} mt-1 text-xs`}>
-                          {formatearPrecio(item.producto.precio)} × {item.cantidad} = {formatearPrecio(item.producto.precio * item.cantidad)}
+                        <p className={`${mono.className} mt-1 text-base font-bold`}>
+                          {formatearPrecio(item.producto.precio * item.cantidad)}
                         </p>
+                        <div className="flex items-center w-fit mt-5 border border-black rounded-lg overflow-hidden">
+                          <button
+                            onClick={() => updateQuantity(item.producto.id, Math.max(1, item.cantidad - 1), item.talle, item.color)}
+                            disabled={item.cantidad <= 1}
+                            className={`${mono.className} flex h-7 w-7 shrink-0 items-center justify-center border-r border-black text-sm transition-colors ${
+                              item.cantidad <= 1
+                                ? 'border-black/15 text-black/25'
+                                : 'hover:bg-black hover:text-white'
+                            }`}
+                          >
+                            −
+                          </button>
+                          <span className={`${mono.className} h-7 min-w-[2ch] shrink-0 flex items-center justify-center text-sm font-bold border-r border-black px-2`}>
+                            {item.cantidad}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item.producto.id, Math.min(stock, item.cantidad + 1), item.talle, item.color)}
+                            disabled={item.cantidad >= stock}
+                            className={`${mono.className} flex h-7 w-7 shrink-0 items-center justify-center text-sm transition-colors ${
+                              item.cantidad >= stock
+                                ? 'border-black/15 text-black/25'
+                                : 'hover:bg-black hover:text-white'
+                            }`}
+                          >
+                            +
+                          </button>
+                        </div>
                       </li>
                     );
                   })}

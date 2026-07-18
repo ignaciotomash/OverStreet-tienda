@@ -3,11 +3,9 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, getSubcategoriaLabel, COLORES_MOCKUP, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
-import { useAuthModal } from '@/lib/auth-modal-context';
 import NavBar from './NavBar';
 import Footer from './Footer';
 import Reveal from './Reveal';
@@ -19,10 +17,8 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ producto }: ProductDetailProps) {
   const searchParams = useSearchParams();
-  const { isSignedIn } = useAuth();
-  const { openSignIn } = useAuthModal();
   const subcategoria = searchParams.get('subcategoria');
-  const { addItem, removeItem, isInCart, getQuantity } = useCart();
+  const { addItem, removeItem, isInCart } = useCart();
   const [cantidad, setCantidad] = useState(1);
   const [talleSeleccionado, setTalleSeleccionado] = useState<string | null>(null);
   const [colorSeleccionado, setColorSeleccionado] = useState<string | null>(null);
@@ -39,7 +35,6 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
   const colores = producto.colores ?? (producto.categoria === 'indumentaria' ? COLORES_MOCKUP : undefined);
 
   const enCarrito = isInCart(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
-  const cantidadEnCarrito = getQuantity(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
 
   return (
     <div className={`${display.variable} ${body.variable} ${mono.variable} min-h-screen bg-white text-black ${body.className}`}>
@@ -197,23 +192,17 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
               </div>
             )}
 
-            <div className="mt-3 flex justify-center">
+            <div id="agregar-al-carrito" className="mt-3 flex justify-center">
               {enCarrito ? (
-                <div className="space-y-2">
-                  <div className={`${mono.className} flex items-center justify-center gap-2 border border-black/20 py-2 text-xs text-black/50`}>
-                    <span>En carrito: {cantidadEnCarrito}</span>
-                  </div>
-                  <button
-                    onClick={() => removeItem(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined)}
-                    className={`${mono.className} w-full border border-[#C1272D]/30 px-5 py-3 text-sm uppercase tracking-wide text-[#C1272D] transition-colors hover:border-[#C1272D] hover:bg-[#C1272D] hover:text-white`}
-                  >
-                    Quitar del carrito
-                  </button>
-                </div>
+                <button
+                  onClick={() => removeItem(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined)}
+                  className={`${mono.className} w-full border border-[#C1272D]/30 bg-[#C1272D]/10 px-5 py-3 text-sm uppercase tracking-wide text-[#C1272D] transition-colors hover:border-[#C1272D] hover:bg-[#C1272D] hover:text-white`}
+                >
+                  Quitar del carrito
+                </button>
               ) : (
                 <button
                   onClick={() => {
-                    if (!isSignedIn) { openSignIn(); return; }
                     addItem(producto, cantidad, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
                   }}
                   className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black`}

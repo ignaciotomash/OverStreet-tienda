@@ -1,11 +1,21 @@
 'use client';
 
-import { SignIn, SignUp } from '@clerk/nextjs';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { SignIn, SignUp, useAuth } from '@clerk/nextjs';
 import { useAuthModal } from '@/lib/auth-modal-context';
 import { mono } from '@/lib/fonts';
 
 export default function AuthModal() {
-  const { mode, close } = useAuthModal();
+  const { mode, close, returnUrl } = useAuthModal();
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isSignedIn && returnUrl) {
+      router.push(`${returnUrl}#agregar-al-carrito`);
+    }
+  }, [isSignedIn, returnUrl, router]);
 
   if (!mode) return null;
 

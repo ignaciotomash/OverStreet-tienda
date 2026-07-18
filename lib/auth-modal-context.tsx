@@ -9,20 +9,32 @@ interface AuthModalContextValue {
   openSignUp: () => void;
   close: () => void;
   mode: AuthModalMode;
+  returnUrl: string | null;
 }
 
 const AuthModalContext = createContext<AuthModalContextValue | null>(null);
 
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<AuthModalMode>(null);
+  const [returnUrl, setReturnUrl] = useState<string | null>(null);
 
   return (
     <AuthModalContext.Provider
       value={{
         mode,
-        openSignIn: () => setMode('signin'),
-        openSignUp: () => setMode('signup'),
-        close: () => setMode(null),
+        returnUrl,
+        openSignIn: () => {
+          setReturnUrl(window.location.pathname);
+          setMode('signin');
+        },
+        openSignUp: () => {
+          setReturnUrl(window.location.pathname);
+          setMode('signup');
+        },
+        close: () => {
+          setMode(null);
+          setReturnUrl(null);
+        },
       }}
     >
       {children}

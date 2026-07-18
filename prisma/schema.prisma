@@ -30,21 +30,5 @@ model Producto {
   creadoEn         DateTime  @default(now()) @map("creado_en")
   actualizadoEn    DateTime  @updatedAt @map("actualizado_en")
 
-  carritoItems CarritoItem[]
-
   @@map("productos")
-}
-
-model CarritoItem {
-  id            String   @id @default(uuid())
-  usuarioId     String   @map("usuario_id")
-  productoId    String   @map("producto_id")
-  producto      Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  talle         String   @default("")
-  cantidad      Int      @default(1)
-  creadoEn      DateTime @default(now()) @map("creado_en")
-  actualizadoEn DateTime @updatedAt @map("actualizado_en")
-
-  @@unique([usuarioId, productoId, talle])
-  @@map("carrito_items")
 }
