@@ -168,7 +168,8 @@ export default function CrearProducto() {
       setMensaje({ tipo: 'exito', texto: 'Producto creado exitosamente' });
       resetFormulario();
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: 'Error al crear el producto' });
+      const texto = error instanceof Error ? error.message : 'Error al crear el producto';
+      setMensaje({ tipo: 'error', texto });
     } finally {
       setSubiendo(false);
     }
@@ -196,7 +197,7 @@ export default function CrearProducto() {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`flex aspect-[4/3] cursor-pointer flex-col items-center justify-center border-2 border-dashed transition-colors ${
+          className={`flex aspect-[3/4] cursor-pointer flex-col items-center justify-center border-2 border-dashed transition-colors ${
             arrastrando
               ? 'border-black bg-black/5'
               : 'border-black/20 hover:border-black/40'

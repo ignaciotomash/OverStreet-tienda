@@ -60,7 +60,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
                   </span>
                 </div>
               )}
-              <Swatch seed={producto.id} aspectClassName="aspect-[4/3]" foto={producto.foto} alt={producto.nombre} />
+              <Swatch seed={producto.id} aspectClassName="aspect-[3/4]" foto={producto.foto} alt={producto.nombre} />
             </div>
           </Reveal>
 

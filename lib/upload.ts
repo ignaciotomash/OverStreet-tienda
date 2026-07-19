@@ -1,9 +1,17 @@
-import { put } from '@vercel/blob';
-
 export async function subirImagen(file: File): Promise<string> {
-  const blob = await put(file.name, file, {
-    access: 'public',
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData,
   });
 
-  return blob.url;
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Error al subir la imagen');
+  }
+
+  return data.url;
 }
