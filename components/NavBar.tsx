@@ -10,8 +10,8 @@ import SlideCart from './SlideCart';
 const NAV_LINKS = [
   { label: 'Inicio', href: '/' },
   { label: 'Catálogo', href: '/catalogo' },
-  { label: 'Nosotros', href: '#' },
-  { label: 'Contacto', href: '#' },
+  { label: 'Contacto', href: '/contacto' },
+  { label: 'Sobre mi', href: '/sobre-mi' },
 ];
 
 export default function NavBar() {
