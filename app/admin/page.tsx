@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { display, body, mono } from '@/lib/fonts';
 import NavBar from '@/components/NavBar';
 import AdminTabs from '@/components/admin/AdminTabs';
@@ -12,7 +13,9 @@ export default function AdminPage() {
         <h1 className={`${display.className} text-2xl sm:text-3xl tracking-tight`}>
           Panel de administrador
         </h1>
-        <AdminTabs />
+        <Suspense>
+          <AdminTabs />
+        </Suspense>
       </main>
     </div>
   );
