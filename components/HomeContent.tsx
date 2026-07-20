@@ -12,7 +12,7 @@ export default function HomeContent() {
       <NavBar />
       <div className="pt-16">
         <Hero />
-        <div className="-mt-8">
+        <div className="-mt-5">
           <Marquee />
         </div>
         <Footer />

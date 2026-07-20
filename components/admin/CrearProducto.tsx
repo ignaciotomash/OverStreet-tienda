@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { mono, body } from '@/lib/fonts';
 import { SUBCATEGORIAS, type Categoria } from '@/lib/products';
 import { subirImagen } from '@/lib/upload';
@@ -48,8 +48,8 @@ const COLORES_CLAROS = new Set(['#FFFFFF', '#D9D9D9', '#FACC15', '#5EEAD4', '#C4
 export default function CrearProducto() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [arrastrando, setArrastrando] = useState(false);
-  const [archivo, setArchivo] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [archivos, setArchivos] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
   const [categoria, setCategoria] = useState<Categoria>('indumentaria');
   const [subcategoria, setSubcategoria] = useState('remeras');
@@ -68,15 +68,39 @@ export default function CrearProducto() {
 
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (mensaje) {
+      setVisible(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        setVisible(false);
+        timerRef.current = setTimeout(() => setMensaje(null), 300);
+      }, 2700);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [mensaje]);
 
   const subcategorias = SUBCATEGORIAS[categoria];
 
-  const handleArchivo = useCallback((file: File) => {
-    setArchivo(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+  const handleArchivos = useCallback((files: FileList | File[]) => {
+    const nuevas = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    setArchivos((prev) => [...prev, ...nuevas]);
+    nuevas.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreviews((prev) => [...prev, e.target?.result as string]);
+      reader.readAsDataURL(file);
+    });
   }, []);
+
+  const eliminarArchivo = (index: number) => {
+    setArchivos((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -91,16 +115,13 @@ export default function CrearProducto() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setArrastrando(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      handleArchivo(file);
-    }
-  }, [handleArchivo]);
+    handleArchivos(e.dataTransfer.files);
+  }, [handleArchivos]);
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleArchivo(file);
-  }, [handleArchivo]);
+    const files = e.target.files;
+    if (files) handleArchivos(files);
+  }, [handleArchivos]);
 
   const toggleTalle = (talle: string) => {
     setTalles((prev) =>
@@ -137,20 +158,20 @@ export default function CrearProducto() {
   };
 
   const formValido = () => {
-    if (!archivo || !nombre || !precio || !descripcion || !descripcionLarga || detalles.length === 0) return false;
+    if (archivos.length === 0 || !nombre || !precio || !descripcion || !descripcionLarga || detalles.length === 0) return false;
     if (categoria === 'indumentaria' && talles.length === 0) return false;
-    if (categoria === 'tecnologia' && !stockUnidades) return false;
+    if (!stockUnidades) return false;
     return true;
   };
 
   const handleSubmit = async () => {
-    if (!formValido() || !archivo) return;
+    if (!formValido() || archivos.length === 0) return;
 
     setSubiendo(true);
     setMensaje(null);
 
     try {
-      const url = await subirImagen(archivo);
+      const urls = await Promise.all(archivos.map((f) => subirImagen(f)));
 
       await createProducto({
         nombre,
@@ -161,8 +182,9 @@ export default function CrearProducto() {
         descripcionLarga,
         detalles,
         talles: categoria === 'indumentaria' ? talles : undefined,
-        stockUnidades: categoria === 'tecnologia' ? Number(stockUnidades) : undefined,
-        imagenes: [url],
+        colores: colores.length > 0 ? colores : undefined,
+        stockUnidades: Number(stockUnidades),
+        imagenes: urls,
       });
 
       setMensaje({ tipo: 'exito', texto: 'Producto creado exitosamente' });
@@ -176,8 +198,8 @@ export default function CrearProducto() {
   };
 
   const resetFormulario = () => {
-    setArchivo(null);
-    setPreview(null);
+    setArchivos([]);
+    setPreviews([]);
     setNombre('');
     setPrecio('');
     setDescripcion('');
@@ -190,27 +212,45 @@ export default function CrearProducto() {
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-      {/* Zona de foto */}
+      {/* Zona de fotos */}
       <div>
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`flex aspect-[3/4] cursor-pointer flex-col items-center justify-center border-2 border-dashed transition-colors ${
+          className={`flex min-h-[200px] cursor-pointer flex-col items-center justify-center border-2 border-dashed transition-colors ${
             arrastrando
               ? 'border-black bg-black/5'
               : 'border-black/20 hover:border-black/40'
           }`}
         >
-          {preview ? (
-            <img src={preview} alt="Preview" className="h-full w-full object-cover" />
-          ) : (
-            <div className={`${mono.className} text-center text-xs uppercase tracking-wider text-black/40`}>
+          {previews.length === 0 ? (
+            <div className={`${mono.className} py-10 text-center text-xs uppercase tracking-wider text-black/40`}>
               <svg className="mx-auto mb-3 h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
               </svg>
-              Arrastrá una foto o hacé click
+              Arrastrá fotos o hacé click
+            </div>
+          ) : (
+            <div className="grid w-full grid-cols-2 gap-2 p-2">
+              {previews.map((p, i) => (
+                <div key={i} className="relative aspect-[3/4]">
+                  <img src={p} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); eliminarArchivo(i); }}
+                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center bg-white/80 text-xs text-black hover:bg-white"
+                  >
+                    ×
+                  </button>
+                  {i === 0 && (
+                    <span className={`${mono.className} absolute left-1 top-1 bg-black/60 px-1.5 py-0.5 text-[9px] uppercase text-white`}>
+                      Principal
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -218,9 +258,15 @@ export default function CrearProducto() {
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           onChange={handleFileChange}
           className="hidden"
         />
+        {previews.length > 0 && (
+          <p className={`${mono.className} mt-1 text-[10px] text-black/40`}>
+            {previews.length} foto{previews.length !== 1 ? 's' : ''} seleccionada{previews.length !== 1 ? 's' : ''}
+          </p>
+        )}
       </div>
 
       {/* Formulario */}
@@ -429,6 +475,7 @@ export default function CrearProducto() {
                 value={nuevoDetalle}
                 onChange={(e) => setNuevoDetalle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && agregarDetalle()}
+                onBlur={agregarDetalle}
                 className={`${mono.className} flex-1 border border-black/20 bg-transparent px-2 py-1 text-xs`}
               />
               <button
@@ -442,21 +489,21 @@ export default function CrearProducto() {
           </div>
         </div>
 
-        {/* Stock (solo tecnología) */}
-        {categoria === 'tecnologia' && (
-          <input
-            type="number"
-            placeholder="Unidades en stock"
-            value={stockUnidades}
-            onChange={(e) => setStockUnidades(e.target.value)}
-            className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
-          />
-        )}
+        {/* Stock */}
+        <input
+          type="number"
+          placeholder="Unidades en stock"
+          value={stockUnidades}
+          onChange={(e) => setStockUnidades(e.target.value)}
+          className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
+        />
 
         {/* Mensaje de feedback */}
         {mensaje && (
           <div
-            className={`${mono.className} border px-3 py-2 text-xs uppercase tracking-wider ${
+            className={`${mono.className} fixed right-5 top-24 z-50 border px-4 py-3 text-xs uppercase tracking-wider shadow-lg transition-opacity duration-300 ${
+              visible ? 'opacity-100' : 'opacity-0'
+            } ${
               mensaje.tipo === 'exito'
                 ? 'border-green-600/30 bg-green-600/10 text-green-700'
                 : 'border-[#C1272D]/30 bg-[#C1272D]/10 text-[#C1272D]'

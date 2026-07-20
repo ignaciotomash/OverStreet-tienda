@@ -13,11 +13,14 @@ function mapProducto(db: {
   descripcionLarga: string;
   detalles: unknown;
   talles: unknown;
+  colores: unknown;
   stockUnidades: number | null;
+  vistas: number;
   imagenes: unknown;
 }): Producto {
   const imagenes = db.imagenes as string[];
   const talles = db.talles as { talle: string; disponible: boolean }[] | null;
+  const colores = db.colores as string[] | null;
 
   return {
     id: db.id,
@@ -29,7 +32,10 @@ function mapProducto(db: {
     descripcionLarga: db.descripcionLarga,
     detalles: db.detalles as string[],
     talles: talles ?? undefined,
+    colores: colores ?? undefined,
     stockUnidades: db.stockUnidades ?? undefined,
+    vistas: db.vistas,
+    imagenes: imagenes,
     foto: imagenes.length > 0 ? imagenes[0] : undefined,
   };
 }
@@ -66,6 +72,7 @@ export async function createProducto(data: {
   descripcionLarga: string;
   detalles: string[];
   talles?: { talle: string; disponible: boolean }[];
+  colores?: string[];
   stockUnidades?: number;
   imagenes: string[];
 }) {
@@ -83,10 +90,59 @@ export async function createProducto(data: {
       descripcionLarga: data.descripcionLarga,
       detalles: data.detalles,
       talles: data.talles ?? undefined,
+      colores: data.colores ?? undefined,
       stockUnidades: data.stockUnidades ?? undefined,
       imagenes: data.imagenes,
     },
   });
 
   return { success: true, producto: mapProducto(producto) };
+}
+
+export async function deleteProducto(id: string) {
+  await prisma.producto.delete({ where: { id } });
+  return { success: true };
+}
+
+export async function updateProducto(
+  id: string,
+  data: {
+    nombre: string;
+    precio: number;
+    categoria: Categoria;
+    subcategoria: string;
+    descripcion: string;
+    descripcionLarga: string;
+    detalles: string[];
+    talles?: { talle: string; disponible: boolean }[];
+    colores?: string[];
+    stockUnidades?: number;
+    imagenes: string[];
+  }
+) {
+  const producto = await prisma.producto.update({
+    where: { id },
+    data: {
+      nombre: data.nombre,
+      precio: data.precio,
+      categoria: data.categoria,
+      subcategoria: data.subcategoria,
+      descripcion: data.descripcion,
+      descripcionLarga: data.descripcionLarga,
+      detalles: data.detalles,
+      talles: data.talles ?? undefined,
+      colores: data.colores ?? undefined,
+      stockUnidades: data.stockUnidades ?? undefined,
+      imagenes: data.imagenes,
+    },
+  });
+
+  return { success: true, producto: mapProducto(producto) };
+}
+
+export async function incrementarVistas(id: string) {
+  await prisma.producto.update({
+    where: { id },
+    data: { vistas: { increment: 1 } },
+  });
 }

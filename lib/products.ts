@@ -40,6 +40,8 @@ export interface Producto {
   talles?: Talle[];
   colores?: string[];
   stockUnidades?: number;
+  vistas?: number;
+  imagenes?: string[];
   foto?: string;
 }
 

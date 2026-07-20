@@ -12,14 +12,24 @@ export default function Footer() {
               Ropa y tecnología al por mayor y menor. Seguinos en redes para ver novedades y hacer tu pedido.
             </p>
           </div>
-          <a
-            href="https://www.instagram.com/l.overstreet_/"
-            target="_blank"
-            rel="noreferrer"
-            className={`${mono.className} border border-black px-4 py-2 text-sm uppercase tracking-wide transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
-          >
-            @overstreet · Instagram
-          </a>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="https://www.instagram.com/l.overstreet_/"
+              target="_blank"
+              rel="noreferrer"
+              className={`${mono.className} border border-black px-4 py-2 text-sm uppercase tracking-wide transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
+            >
+              @overstreet · Instagram
+            </a>
+            <a
+              href="https://www.facebook.com/marketplace/profile/100088868303531/?ref=permalink&mibextid=6ojiHh"
+              target="_blank"
+              rel="noreferrer"
+              className={`${mono.className} border border-black px-4 py-2 text-sm uppercase tracking-wide transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
+            >
+              Overstreet · Facebook
+            </a>
+          </div>
         </div>
       </Reveal>
     </footer>

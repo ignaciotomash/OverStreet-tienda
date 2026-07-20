@@ -23,6 +23,7 @@ model Producto {
   descripcionLarga String    @map("descripcion_larga")
   detalles         Json
   talles           Json?
+  colores          Json?
   stockUnidades    Int?      @map("stock_unidades")
   imagenes         Json      @default("[]")
   agotado          Boolean   @default(false)

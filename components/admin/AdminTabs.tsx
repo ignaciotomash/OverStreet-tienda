@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { mono } from '@/lib/fonts';
 import CrearProducto from './CrearProducto';
+import EditarProducto from './EditarProducto';
+import EliminarProducto from './EliminarProducto';
 
 type Tab = 'crear' | 'editar' | 'eliminar';
 
@@ -13,7 +16,11 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function AdminTabs() {
-  const [activeTab, setActiveTab] = useState<Tab>('crear');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<Tab>(
+    tabParam === 'eliminar' || tabParam === 'editar' ? tabParam : 'crear'
+  );
 
   return (
     <div className="mt-8">
@@ -38,16 +45,8 @@ export default function AdminTabs() {
 
       <div className="mt-6">
         {activeTab === 'crear' && <CrearProducto />}
-        {activeTab === 'editar' && (
-          <p className={`${mono.className} text-sm text-black/50`}>
-            Próximamente...
-          </p>
-        )}
-        {activeTab === 'eliminar' && (
-          <p className={`${mono.className} text-sm text-black/50`}>
-            Próximamente...
-          </p>
-        )}
+        {activeTab === 'editar' && <EditarProducto />}
+        {activeTab === 'eliminar' && <EliminarProducto />}
       </div>
     </div>
   );

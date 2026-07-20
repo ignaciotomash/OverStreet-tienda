@@ -14,9 +14,7 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
   const total = items.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
 
   const getStockMaximo = (item: typeof items[0]) =>
-    item.producto.categoria === 'tecnologia'
-      ? (item.producto.stockUnidades ?? 1)
-      : (item.producto.talles?.filter((t) => t.disponible).length ?? 1);
+    item.producto.stockUnidades ?? 1;
 
   return (
     <>

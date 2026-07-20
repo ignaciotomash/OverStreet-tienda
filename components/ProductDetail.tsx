@@ -18,19 +18,20 @@ interface ProductDetailProps {
 export default function ProductDetail({ producto }: ProductDetailProps) {
   const searchParams = useSearchParams();
   const subcategoria = searchParams.get('subcategoria');
+  const fromAdmin = searchParams.get('from') === 'admin';
   const { addItem, removeItem, isInCart } = useCart();
   const [cantidad, setCantidad] = useState(1);
   const [talleSeleccionado, setTalleSeleccionado] = useState<string | null>(null);
   const [colorSeleccionado, setColorSeleccionado] = useState<string | null>(null);
+  const [imagenActiva, setImagenActiva] = useState(0);
 
-  const agotado =
-    producto.categoria === 'tecnologia'
-      ? producto.stockUnidades === 0
-      : producto.talles?.every((t) => !t.disponible);
+  const imagenes = producto.imagenes && producto.imagenes.length > 0
+    ? producto.imagenes
+    : (producto.foto ? [producto.foto] : []);
 
-  const stockMaximo = producto.categoria === 'tecnologia'
-    ? (producto.stockUnidades ?? 1)
-    : (producto.talles?.filter((t) => t.disponible).length ?? 1);
+  const agotado = producto.stockUnidades === 0;
+
+  const stockMaximo = producto.stockUnidades ?? 1;
 
   const colores = producto.colores ?? (producto.categoria === 'indumentaria' ? COLORES_MOCKUP : undefined);
 
@@ -43,31 +44,81 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
       <section className="mx-auto max-w-5xl px-5 pb-20 pt-24">
         <Reveal>
           <Link
-            href={`/catalogo?categoria=${producto.categoria}${subcategoria ? `&subcategoria=${subcategoria}` : ''}`}
+            href={fromAdmin ? '/admin?tab=eliminar' : `/catalogo?categoria=${producto.categoria}${subcategoria ? `&subcategoria=${subcategoria}` : ''}`}
             className={`${mono.className} inline-flex items-center gap-2 text-sm text-black/60 transition-colors hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
           >
-            ← Volver al catálogo
+            {fromAdmin ? '← Volver al panel' : '← Volver al catálogo'}
           </Link>
         </Reveal>
 
         <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <Reveal direction="left">
-            <div className="relative max-h-[65vh] border border-black bg-[#ECEAE4]">
+            <div className="relative border border-black bg-[#ECEAE4]">
               {agotado && (
-                <div className="absolute right-4 top-4 z-10 rotate-[-8deg] border-2 border-[#C1272D] px-2 py-0.5">
+                <div className="absolute right-4 top-4 z-20 rotate-[-8deg] border-2 border-[#C1272D] px-2 py-0.5">
                   <span className={`${mono.className} text-xs font-bold uppercase tracking-wider text-[#C1272D]`}>
                     Agotado
                   </span>
                 </div>
               )}
-              <Swatch seed={producto.id} aspectClassName="aspect-[3/4]" foto={producto.foto} alt={producto.nombre} />
+
+              {imagenes.length > 0 ? (
+                <div className="overflow-hidden aspect-[3/4]">
+                  <div
+                    className="flex h-full transition-transform duration-500 ease-in-out"
+                    style={{ transform: `translateX(-${imagenActiva * 100}%)` }}
+                  >
+                    {imagenes.map((url, i) => (
+                      <div key={i} className="relative h-full w-full flex-shrink-0">
+                        <img
+                          src={url}
+                          alt={`${producto.nombre} foto ${i + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Swatch seed={producto.id} aspectClassName="aspect-[3/4]" />
+              )}
+
+              {imagenes.length > 1 && (
+                <>
+                  {imagenActiva > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setImagenActiva((prev) => prev - 1)}
+                      className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/20 bg-white/70 text-black backdrop-blur-sm transition-colors hover:bg-white"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                      </svg>
+                    </button>
+                  )}
+                  {imagenActiva < imagenes.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setImagenActiva((prev) => prev + 1)}
+                      className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/20 bg-white/70 text-black backdrop-blur-sm transition-colors hover:bg-white"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </button>
+                  )}
+                  <span className={`${mono.className} absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/50 px-2.5 py-0.5 text-[10px] text-white`}>
+                    {imagenActiva + 1} / {imagenes.length}
+                  </span>
+                </>
+              )}
             </div>
           </Reveal>
 
           <Reveal direction="right" delay={80}>
             <span className={`${mono.className} text-xs uppercase tracking-[0.2em] text-black/50`}>
-              {producto.categoria === 'indumentaria' ? 'Indumentaria' : 'Tecnología'} ·{' '}
-              {getSubcategoriaLabel(producto.categoria, producto.subcategoria)} · Cód. {producto.id}
+              {producto.categoria === 'indumentaria' ? 'Indumentaria' : producto.categoria === 'tecnologia' ? 'Tecnología' : 'Perfumería'} ·{' '}
+              {getSubcategoriaLabel(producto.categoria, producto.subcategoria)}
             </span>
 
             <h1 className={`${display.className} mt-2 text-[clamp(2rem,5vw,3.25rem)] leading-[0.95] tracking-tight`}>
@@ -133,17 +184,6 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
               </div>
             )}
 
-            {producto.categoria === 'tecnologia' && (
-              <div className="mt-6">
-                <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
-                  Disponibilidad
-                </span>
-                <p className={`${mono.className} mt-2 text-sm`}>
-                  {agotado ? 'Sin stock por el momento' : `${producto.stockUnidades} unidades disponibles`}
-                </p>
-              </div>
-            )}
-
             <div className="mt-8 border-t border-black pt-5">
               <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
                 Detalles
@@ -158,14 +198,14 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
               </ul>
             </div>
 
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              className={`${mono.className} mt-8 inline-block border border-black px-5 py-3 text-sm uppercase tracking-wide transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black`}
-            >
-              Consultar por Instagram
-            </a>
+            <div className="mt-5">
+              <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
+                Stock
+              </span>
+              <p className={`${mono.className} mt-1 text-sm`}>
+                {agotado ? 'Sin stock por el momento' : `${producto.stockUnidades} unidades disponibles`}
+              </p>
+            </div>
 
             {!agotado && (
               <div className="mt-4 text-center">
