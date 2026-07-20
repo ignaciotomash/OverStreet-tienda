@@ -2,9 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { mono, body } from '@/lib/fonts';
-import { SUBCATEGORIAS, type Categoria } from '@/lib/products';
+import { getSubcategoriasCompletas, type Categoria, type Producto } from '@/lib/products';
 import { subirImagen } from '@/lib/upload';
-import { createProducto } from '@/app/actions/actions';
+import { createProducto, getProductos } from '@/app/actions/actions';
 
 const TALLES_DEFAULT = ['S', 'M', 'L', 'XL', 'XXL'];
 
@@ -53,6 +53,7 @@ export default function CrearProducto() {
 
   const [categoria, setCategoria] = useState<Categoria>('indumentaria');
   const [subcategoria, setSubcategoria] = useState('remeras');
+  const [productos, setProductos] = useState<Producto[]>([]);
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');
   const [descripcion, setDescripcion] = useState('');
@@ -65,6 +66,16 @@ export default function CrearProducto() {
   const [detalles, setDetalles] = useState<string[]>([]);
   const [nuevoDetalle, setNuevoDetalle] = useState('');
   const [stockUnidades, setStockUnidades] = useState('');
+
+  const [subcatExtras, setSubcatExtras] = useState<Record<Categoria, { value: string; label: string }[]>>(() => {
+    if (typeof window === 'undefined') return { indumentaria: [], tecnologia: [], perfumeria: [] };
+    try {
+      const stored = localStorage.getItem('subcatExtras');
+      return stored ? JSON.parse(stored) : { indumentaria: [], tecnologia: [], perfumeria: [] };
+    } catch { return { indumentaria: [], tecnologia: [], perfumeria: [] }; }
+  });
+  const [mostrarInputSub, setMostrarInputSub] = useState(false);
+  const [nuevaSub, setNuevaSub] = useState('');
 
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
@@ -85,7 +96,21 @@ export default function CrearProducto() {
     };
   }, [mensaje]);
 
-  const subcategorias = SUBCATEGORIAS[categoria];
+  useEffect(() => {
+    getProductos().then(setProductos);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('subcatExtras', JSON.stringify(subcatExtras));
+  }, [subcatExtras]);
+
+  const subBase = getSubcategoriasCompletas(categoria, productos);
+  const subcategorias = [
+    ...subBase,
+    ...subcatExtras[categoria].filter(
+      (extra) => !subBase.find((s) => s.value === extra.value)
+    ),
+  ];
 
   const handleArchivos = useCallback((files: FileList | File[]) => {
     const nuevas = Array.from(files).filter((f) => f.type.startsWith('image/'));
@@ -272,31 +297,101 @@ export default function CrearProducto() {
       {/* Formulario */}
       <div className="flex flex-col gap-5">
         {/* Categoría y subcategoría */}
-        <div className="flex gap-3">
-          <select
-            value={categoria}
-            onChange={(e) => {
-              const cat = e.target.value as Categoria;
-              setCategoria(cat);
-              setSubcategoria(SUBCATEGORIAS[cat][0].value);
-            }}
-            className={`${mono.className} flex-1 border border-black bg-transparent px-3 py-2 text-xs uppercase tracking-wider`}
-          >
-            <option value="indumentaria">Indumentaria</option>
-            <option value="tecnologia">Tecnología</option>
-            <option value="perfumeria">Perfumería</option>
-          </select>
-          <select
-            value={subcategoria}
-            onChange={(e) => setSubcategoria(e.target.value)}
-            className={`${mono.className} flex-1 border border-black bg-transparent px-3 py-2 text-xs uppercase tracking-wider`}
-          >
-            {subcategorias.map((sub) => (
-              <option key={sub.value} value={sub.value}>
-                {sub.label}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-3">
+            <select
+              value={categoria}
+              onChange={(e) => {
+                const cat = e.target.value as Categoria;
+                setCategoria(cat);
+                const base = getSubcategoriasCompletas(cat, productos);
+                const extras = subcatExtras[cat].filter((extra) => !base.find((s) => s.value === extra.value));
+                setSubcategoria([...base, ...extras][0].value);
+                setMostrarInputSub(false);
+                setNuevaSub('');
+              }}
+              className={`${mono.className} flex-1 border border-black bg-transparent px-3 py-2 text-xs uppercase tracking-wider`}
+            >
+              <option value="indumentaria">Indumentaria</option>
+              <option value="tecnologia">Tecnología</option>
+              <option value="perfumeria">Perfumería</option>
+            </select>
+            <select
+              value={subcategoria}
+              onChange={(e) => setSubcategoria(e.target.value)}
+              className={`${mono.className} flex-1 border border-black bg-transparent px-3 py-2 text-xs uppercase tracking-wider`}
+            >
+              {subcategorias.map((sub) => (
+                <option key={sub.value} value={sub.value}>
+                  {sub.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => { setMostrarInputSub((v) => !v); setNuevaSub(''); }}
+              className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black/20 text-sm text-black/50 transition-colors hover:border-black hover:text-black ${mostrarInputSub ? 'bg-black text-white border-black' : ''}`}
+            >
+              +
+            </button>
+          </div>
+
+          {mostrarInputSub && (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Nueva subcategoría..."
+                value={nuevaSub}
+                onChange={(e) => setNuevaSub(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && nuevaSub.trim()) {
+                    const value = nuevaSub.trim().toLowerCase().replace(/\s+/g, '-');
+                    const label = nuevaSub.trim();
+                    if (!subcategorias.find((s) => s.value === value)) {
+                      setSubcatExtras((prev) => ({
+                        ...prev,
+                        [categoria]: [...prev[categoria], { value, label }],
+                      }));
+                    }
+                    setSubcategoria(value);
+                    setNuevaSub('');
+                    setMostrarInputSub(false);
+                  }
+                  if (e.key === 'Escape') { setMostrarInputSub(false); setNuevaSub(''); }
+                }}
+                autoFocus
+                className={`${mono.className} flex-1 border border-black/20 bg-transparent px-3 py-2 text-xs`}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (nuevaSub.trim()) {
+                    const value = nuevaSub.trim().toLowerCase().replace(/\s+/g, '-');
+                    const label = nuevaSub.trim();
+                    if (!subcategorias.find((s) => s.value === value)) {
+                      setSubcatExtras((prev) => ({
+                        ...prev,
+                        [categoria]: [...prev[categoria], { value, label }],
+                      }));
+                    }
+                    setSubcategoria(value);
+                    setNuevaSub('');
+                    setMostrarInputSub(false);
+                  }
+                }}
+                className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black/20 text-sm text-black/50 transition-colors hover:border-black hover:text-black`}
+              >
+                ✓
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMostrarInputSub(false); setNuevaSub(''); }}
+                className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black/20 text-sm text-black/50 transition-colors hover:border-black hover:text-black`}
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Nombre */}

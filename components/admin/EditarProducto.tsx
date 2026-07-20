@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { mono, body } from '@/lib/fonts';
-import { SUBCATEGORIAS, type Categoria, type Producto } from '@/lib/products';
+import { getSubcategoriasCompletas, type Categoria, type Producto } from '@/lib/products';
 import { subirImagen } from '@/lib/upload';
 import { getProductos, updateProducto } from '@/app/actions/actions';
 import ProductCard from '../ProductCard';
@@ -81,6 +81,14 @@ export default function EditarProducto() {
   const [nuevoDetalle, setNuevoDetalle] = useState('');
   const [stockUnidades, setStockUnidades] = useState('');
 
+  const [subcatExtras] = useState<Record<Categoria, { value: string; label: string }[]>>(() => {
+    if (typeof window === 'undefined') return { indumentaria: [], tecnologia: [], perfumeria: [] };
+    try {
+      const stored = localStorage.getItem('subcatExtras');
+      return stored ? JSON.parse(stored) : { indumentaria: [], tecnologia: [], perfumeria: [] };
+    } catch { return { indumentaria: [], tecnologia: [], perfumeria: [] }; }
+  });
+
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
   const [visible, setVisible] = useState(false);
@@ -112,8 +120,20 @@ export default function EditarProducto() {
     setBusqueda('');
   }, [categoria]);
 
-  const subcategorias = SUBCATEGORIAS[categoria];
-  const editSubcategorias = SUBCATEGORIAS[editCategoria];
+  const subBase = getSubcategoriasCompletas(categoria, productos);
+  const subcategorias = [
+    ...subBase,
+    ...subcatExtras[categoria].filter(
+      (extra) => !subBase.find((s) => s.value === extra.value)
+    ),
+  ];
+  const editSubBase = getSubcategoriasCompletas(editCategoria, productos);
+  const editSubcategorias = [
+    ...editSubBase,
+    ...subcatExtras[editCategoria].filter(
+      (extra) => !editSubBase.find((s) => s.value === extra.value)
+    ),
+  ];
 
   const normalizar = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const busquedaNorm = normalizar(busqueda);
@@ -330,7 +350,7 @@ export default function EditarProducto() {
             </Reveal>
 
             <Reveal delay={40}>
-              <div className="mb-8 flex flex-wrap justify-center gap-2 sm:justify-start" role="group" aria-label="Filtrar por subcategoría">
+              <div className="mb-8 flex flex-wrap items-center justify-center gap-2 sm:justify-start" role="group" aria-label="Filtrar por subcategoría">
                 <button
                   onClick={() => setSubcategoria(TODOS)}
                   aria-pressed={subcategoria === TODOS}
@@ -508,7 +528,7 @@ export default function EditarProducto() {
               onChange={(e) => {
                 const cat = e.target.value as Categoria;
                 setEditCategoria(cat);
-                setEditSubcategoria(SUBCATEGORIAS[cat][0].value);
+                setEditSubcategoria(getSubcategoriasCompletas(cat, productos)[0].value);
               }}
               className={`${mono.className} flex-1 border border-black bg-transparent px-3 py-2 text-xs uppercase tracking-wider`}
             >

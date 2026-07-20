@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { mono } from '@/lib/fonts';
-import { SUBCATEGORIAS, type Categoria, type Producto } from '@/lib/products';
+import { getSubcategoriasCompletas, type Categoria, type Producto } from '@/lib/products';
 import Reveal from './Reveal';
 import ProductCard from './ProductCard';
 
@@ -23,7 +23,7 @@ export default function Catalog({ categoria, subcategoriaInicial, onChangeCatego
     setSubcategoria(subcategoriaInicial ?? TODOS);
     setBusqueda('');
   }, [categoria, subcategoriaInicial]);
-  const subcategorias = SUBCATEGORIAS[categoria];
+  const subcategorias = getSubcategoriasCompletas(categoria, productos);
 
   const normalizar = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const busquedaNorm = normalizar(busqueda);

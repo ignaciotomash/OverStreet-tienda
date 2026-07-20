@@ -12,20 +12,9 @@ export interface SubcategoriaOpcion {
 
 /** Subcategorías disponibles por categoría, en el orden en que se muestran los chips. */
 export const SUBCATEGORIAS: Record<Categoria, SubcategoriaOpcion[]> = {
-  indumentaria: [
-    { value: 'remeras', label: 'Remeras' },
-    { value: 'buzos', label: 'Buzos' },
-    { value: 'camperas', label: 'Camperas' },
-    { value: 'joggers', label: 'Joggers' },
-  ],
-  tecnologia: [
-    { value: 'audio', label: 'Audio' },
-    { value: 'wearables', label: 'Wearables' },
-    { value: 'accesorios', label: 'Accesorios' },
-  ],
-  perfumeria: [
-    { value: 'todos', label: 'Todos' },
-  ],
+  indumentaria: [],
+  tecnologia: [],
+  perfumeria: [],
 };
 
 export interface Producto {
@@ -56,3 +45,20 @@ export const formatearPrecio = (valor: number) =>
 
 export const getSubcategoriaLabel = (categoria: Categoria, subcategoria: string): string =>
   SUBCATEGORIAS[categoria].find((s) => s.value === subcategoria)?.label ?? subcategoria;
+
+export function getSubcategoriasCompletas(categoria: Categoria, productos: Producto[]): SubcategoriaOpcion[] {
+  const defaults = SUBCATEGORIAS[categoria];
+  const defaultsValues = new Set(defaults.map((d) => d.value));
+
+  const extras = [...new Set(
+    productos
+      .filter((p) => p.categoria === categoria)
+      .map((p) => p.subcategoria)
+      .filter((s) => s && !defaultsValues.has(s))
+  )];
+
+  return [
+    ...defaults,
+    ...extras.map((s) => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) })),
+  ];
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { mono } from '@/lib/fonts';
-import { SUBCATEGORIAS, type Categoria, type Producto } from '@/lib/products';
+import { getSubcategoriasCompletas, type Categoria, type Producto } from '@/lib/products';
 import { getProductos, deleteProducto } from '@/app/actions/actions';
 import ProductCard from '../ProductCard';
 import Reveal from '../Reveal';
@@ -28,7 +28,7 @@ export default function EliminarProducto() {
     setBusqueda('');
   }, [categoria]);
 
-  const subcategorias = SUBCATEGORIAS[categoria];
+  const subcategorias = getSubcategoriasCompletas(categoria, productos);
 
   const normalizar = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const busquedaNorm = normalizar(busqueda);
