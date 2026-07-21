@@ -40,9 +40,34 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
   const enCarrito = isInCart(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
 
   const construirMensajeWhatsApp = () => {
-    let mensaje = `Buenas, me interesa el producto ${producto.nombre} que tenés en la página`;
-    if (talleSeleccionado) mensaje += `\ncon el talle: ${talleSeleccionado}`;
-    if (colorSeleccionado) mensaje += `\ny en color: ${colorSeleccionado}`;
+  const url = typeof window !== "undefined" ? window.location.href : "";
+
+  let mensaje = `¡Buenas! Me interesa el siguiente producto y quisiera realizar una consulta o concretar la compra.
+
+*Producto:*
+  ${producto.nombre}`;
+
+    if (talleSeleccionado) {
+      mensaje += `
+
+*Talle:*
+  ${talleSeleccionado}`;
+    }
+
+    if (colorSeleccionado) {
+      mensaje += `
+
+*Color:*
+  ${colorSeleccionado}`;
+    }
+
+    mensaje += `
+
+*Link de la publicación:*
+${url}
+
+Quedo atento. ¡Muchas gracias!`;
+
     return encodeURIComponent(mensaje);
   };
 
@@ -64,8 +89,8 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
           <Reveal direction="left">
             <div className="relative border border-black bg-[#ECEAE4]">
               {agotado && (
-                <div className="absolute right-4 top-4 z-20 rotate-[-8deg] border-2 border-[#C1272D] px-2 py-0.5">
-                  <span className={`${mono.className} text-xs font-bold uppercase tracking-wider text-[#C1272D]`}>
+                <div className="absolute -right-7 top-2 z-20 rotate-[40deg] border-2 border-[#C1272D] bg-[#C1272D]/10 px-6 py-2">
+                  <span className={`${mono.className} text-sm font-bold uppercase tracking-wider text-[#C1272D]`}>
                     Agotado
                   </span>
                 </div>

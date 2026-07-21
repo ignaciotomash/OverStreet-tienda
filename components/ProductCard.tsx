@@ -48,8 +48,8 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar, 
         )}
 
         {agotado && (
-          <div className="stamp absolute right-2.5 top-2.5 z-10 rotate-[-8deg] border-2 border-[#C1272D] px-1.5 py-0.5">
-            <span className={`${mono.className} text-[10px] font-bold uppercase tracking-wider text-[#C1272D]`}>
+          <div className="stamp absolute -right-5 -top-1 z-10 rotate-[30deg] border-2 border-[#C1272D] bg-[#C1272D]/10 px-3 py-1.5">
+            <span className={`${mono.className} text-[11px] font-bold uppercase tracking-wider text-[#C1272D]`}>
               Agotado
             </span>
           </div>
