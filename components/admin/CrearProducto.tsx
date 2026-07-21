@@ -330,7 +330,7 @@ export default function CrearProducto() {
             <button
               type="button"
               onClick={() => { setMostrarInputSub((v) => !v); setNuevaSub(''); }}
-              className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black/20 text-sm text-black/50 transition-colors hover:border-black hover:text-black ${mostrarInputSub ? 'bg-black text-white border-black' : ''}`}
+              className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10`}
             >
               +
             </button>
@@ -379,16 +379,16 @@ export default function CrearProducto() {
                     setMostrarInputSub(false);
                   }
                 }}
-                className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black/20 text-sm text-black/50 transition-colors hover:border-black hover:text-black`}
+                className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10`}
               >
                 ✓
               </button>
               <button
                 type="button"
                 onClick={() => { setMostrarInputSub(false); setNuevaSub(''); }}
-                className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black/20 text-sm text-black/50 transition-colors hover:border-black hover:text-black`}
+                className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10`}
               >
-                ×
+                X 
               </button>
             </div>
           )}
