@@ -16,7 +16,9 @@ interface CatalogoContentProps {
 export default function CatalogoContent({ productos }: CatalogoContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const categoriaInicial: Categoria = searchParams.get('categoria') === 'tecnologia' ? 'tecnologia' : 'indumentaria';
+  const catParam = searchParams.get('categoria');
+  const categoriaInicial: Categoria =
+    catParam === 'tecnologia' || catParam === 'perfumeria' ? catParam : 'indumentaria';
   const subcategoriaInicial = searchParams.get('subcategoria') ?? undefined;
   const [categoria, setCategoria] = useState<Categoria>(categoriaInicial);
 

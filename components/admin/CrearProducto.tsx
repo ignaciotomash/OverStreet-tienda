@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { mono, body } from '@/lib/fonts';
 import { getSubcategoriasCompletas, type Categoria, type Producto } from '@/lib/products';
-import { subirImagen } from '@/lib/upload';
+import { subirImagen, normalizarImagen } from '@/lib/upload';
 import { createProducto, getProductos } from '@/app/actions/actions';
 
 const TALLES_DEFAULT = ['S', 'M', 'L', 'XL', 'XXL'];
@@ -77,6 +77,7 @@ export default function CrearProducto() {
   const [mostrarInputSub, setMostrarInputSub] = useState(false);
   const [nuevaSub, setNuevaSub] = useState('');
 
+  const [convirtiendo, setConvirtiendo] = useState(false);
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
   const [visible, setVisible] = useState(false);
@@ -112,14 +113,27 @@ export default function CrearProducto() {
     ),
   ];
 
-  const handleArchivos = useCallback((files: FileList | File[]) => {
-    const nuevas = Array.from(files).filter((f) => f.type.startsWith('image/'));
-    setArchivos((prev) => [...prev, ...nuevas]);
-    nuevas.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => setPreviews((prev) => [...prev, e.target?.result as string]);
-      reader.readAsDataURL(file);
+  const handleArchivos = useCallback(async (files: FileList | File[]) => {
+    const raw = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (raw.length === 0) return;
+
+    const tieneHeic = raw.some((f) => {
+      const ext = f.name.split('.').pop()?.toLowerCase();
+      return ext === 'heic' || ext === 'heif' || f.type === 'image/heic' || f.type === 'image/heif';
     });
+    if (tieneHeic) setConvirtiendo(true);
+
+    try {
+      const normalizadas = await Promise.all(raw.map((f) => normalizarImagen(f)));
+      setArchivos((prev) => [...prev, ...normalizadas]);
+      normalizadas.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => setPreviews((prev) => [...prev, e.target?.result as string]);
+        reader.readAsDataURL(file);
+      });
+    } finally {
+      setConvirtiendo(false);
+    }
   }, []);
 
   const eliminarArchivo = (index: number) => {
@@ -290,6 +304,11 @@ export default function CrearProducto() {
         {previews.length > 0 && (
           <p className={`${mono.className} mt-1 text-[10px] text-black/40`}>
             {previews.length} foto{previews.length !== 1 ? 's' : ''} seleccionada{previews.length !== 1 ? 's' : ''}
+          </p>
+        )}
+        {convirtiendo && (
+          <p className={`${mono.className} mt-1 text-[10px] text-black/60`}>
+            Convirtiendo imagen HEIC a JPEG...
           </p>
         )}
       </div>
@@ -612,10 +631,10 @@ export default function CrearProducto() {
         <div className="flex justify-end">
           <button
             onClick={handleSubmit}
-            disabled={!formValido() || subiendo}
+            disabled={!formValido() || subiendo || convirtiendo}
             className={`${mono.className} border border-black bg-black px-8 py-3 text-xs uppercase tracking-wider text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-black disabled:hover:text-white`}
           >
-            {subiendo ? 'Subiendo...' : 'Subir producto'}
+            {convirtiendo ? 'Convirtiendo...' : subiendo ? 'Subiendo...' : 'Subir producto'}
           </button>
             </div>
           </div>
