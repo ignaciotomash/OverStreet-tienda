@@ -13,8 +13,13 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
   const { items, removeItem, clearCart, updateQuantity } = useCart();
   const total = items.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
 
-  const getStockMaximo = (item: typeof items[0]) =>
-    item.producto.stockUnidades ?? 1;
+  const getStockMaximo = (item: typeof items[0]) => {
+    if (item.talle) {
+      const talleData = item.producto.talles?.find((t) => t.talle === item.talle);
+      if (talleData?.stock != null) return talleData.stock;
+    }
+    return item.producto.stockUnidades ?? 1;
+  };
 
   return (
     <>

@@ -19,7 +19,7 @@ function mapProducto(db: {
   imagenes: unknown;
 }): Producto {
   const imagenes = db.imagenes as string[];
-  const talles = db.talles as { talle: string; disponible: boolean }[] | null;
+  const talles = db.talles as { talle: string; disponible: boolean; stock?: number }[] | null;
   const colores = db.colores as string[] | null;
 
   return {
@@ -71,7 +71,7 @@ export async function createProducto(data: {
   descripcion: string;
   descripcionLarga: string;
   detalles: string[];
-  talles?: { talle: string; disponible: boolean }[];
+  talles?: { talle: string; disponible: boolean; stock?: number }[];
   colores?: string[];
   stockUnidades?: number;
   imagenes: string[];
@@ -114,7 +114,7 @@ export async function updateProducto(
     descripcion: string;
     descripcionLarga: string;
     detalles: string[];
-    talles?: { talle: string; disponible: boolean }[];
+    talles?: { talle: string; disponible: boolean; stock?: number }[];
     colores?: string[];
     stockUnidades?: number;
     imagenes: string[];

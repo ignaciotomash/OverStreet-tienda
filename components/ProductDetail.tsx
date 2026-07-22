@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { display, body, mono } from '@/lib/fonts';
 import { formatearPrecio, getSubcategoriaLabel, COLORES_MOCKUP, type Producto } from '@/lib/products';
@@ -26,22 +26,90 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
   const [talleSeleccionado, setTalleSeleccionado] = useState<string | null>(null);
   const [colorSeleccionado, setColorSeleccionado] = useState<string | null>(null);
   const [imagenActiva, setImagenActiva] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState('');
+  const touchStartX = useRef(0);
+  const touchCurrentX = useRef(0);
 
   const imagenes = producto.imagenes && producto.imagenes.length > 0
     ? producto.imagenes
     : (producto.foto ? [producto.foto] : []);
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchCurrentX.current = e.touches[0].clientX;
+    setIsDragging(true);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    touchCurrentX.current = e.touches[0].clientX;
+    const delta = touchCurrentX.current - touchStartX.current;
+    setDragOffset(delta);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    const delta = touchCurrentX.current - touchStartX.current;
+    const umbral = 50;
+
+    if (delta < -umbral && imagenActiva < imagenes.length - 1) {
+      setImagenActiva((prev) => prev + 1);
+    } else if (delta > umbral && imagenActiva > 0) {
+      setImagenActiva((prev) => prev - 1);
+    }
+    setDragOffset(0);
+  }, [imagenActiva, imagenes.length]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    touchStartX.current = e.clientX;
+    touchCurrentX.current = e.clientX;
+    setIsDragging(true);
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+    touchCurrentX.current = e.clientX;
+    const delta = touchCurrentX.current - touchStartX.current;
+    setDragOffset(delta);
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const delta = touchCurrentX.current - touchStartX.current;
+    const umbral = 50;
+
+    if (delta < -umbral && imagenActiva < imagenes.length - 1) {
+      setImagenActiva((prev) => prev + 1);
+    } else if (delta > umbral && imagenActiva > 0) {
+      setImagenActiva((prev) => prev - 1);
+    }
+    setDragOffset(0);
+  }, [isDragging, imagenActiva, imagenes.length]);
+
+  useEffect(() => {
+    setCantidad(1);
+  }, [talleSeleccionado]);
+
+  useEffect(() => {
+    setCurrentUrl(window.location.href);
+  }, []);
+
   const agotado = producto.stockUnidades === 0;
 
-  const stockMaximo = producto.stockUnidades ?? 1;
+  const talleActual = talleSeleccionado
+    ? producto.talles?.find((t) => t.talle === talleSeleccionado)
+    : undefined;
+
+  const stockMaximo = talleActual?.stock ?? producto.stockUnidades ?? 1;
 
   const colores = producto.colores ?? (producto.categoria === 'indumentaria' ? COLORES_MOCKUP : undefined);
 
   const enCarrito = isInCart(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
 
   const construirMensajeWhatsApp = () => {
-  const url = typeof window !== "undefined" ? window.location.href : "";
-
   let mensaje = `¡Buenas! Me interesa el siguiente producto y quisiera realizar una consulta o concretar la compra.
 
 *Producto:*
@@ -64,7 +132,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
     mensaje += `
 
 *Link de la publicación:*
-${url}
+${currentUrl}
 
 Quedo atento. ¡Muchas gracias!`;
 
@@ -89,18 +157,27 @@ Quedo atento. ¡Muchas gracias!`;
           <Reveal direction="left">
             <div className="relative border border-black bg-[#ECEAE4]">
               {agotado && (
-                <div className="absolute -right-7 top-2 z-20 rotate-[40deg] border-2 border-[#C1272D] bg-[#C1272D]/10 px-6 py-2">
-                  <span className={`${mono.className} text-sm font-bold uppercase tracking-wider text-[#C1272D]`}>
+                <div className="absolute inset-0 z-20 flex items-start justify-center overflow-hidden pt-60 pointer-events-none">
+                  <div className={`${mono.className} w-[200%] -rotate-[35deg] bg-[#C1272D]/70 py-3 text-center text-sm font-bold uppercase tracking-widest text-white`}>
                     Agotado
-                  </span>
+                  </div>
                 </div>
               )}
 
               {imagenes.length > 0 ? (
-                <div className="overflow-hidden aspect-[3/4]">
+                <div
+                  className="overflow-hidden aspect-[3/4] touch-pan-y select-none"
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                >
                   <div
-                    className="flex h-full transition-transform duration-500 ease-in-out"
-                    style={{ transform: `translateX(-${imagenActiva * 100}%)` }}
+                    className={`flex h-full ${isDragging ? '' : 'transition-transform duration-500 ease-in-out'}`}
+                    style={{ transform: `translateX(calc(-${imagenActiva * 100}% + ${dragOffset}px))` }}
                   >
                     {imagenes.map((url, i) => (
                       <div key={i} className="relative h-full w-full flex-shrink-0">
@@ -176,20 +253,26 @@ Quedo atento. ¡Muchas gracias!`;
                 </span>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {producto.talles.map((t) => (
-                    <button
-                      key={t.talle}
-                      disabled={!t.disponible}
-                      onClick={() => setTalleSeleccionado(t.talle)}
-                      className={`${mono.className} flex h-9 min-w-9 items-center justify-center border px-2 text-sm transition-colors ${
-                        !t.disponible
-                          ? 'cursor-not-allowed border-black/20 text-black/25 line-through'
-                          : talleSeleccionado === t.talle
-                            ? 'border-black bg-black text-white'
-                            : 'border-black text-black hover:bg-black hover:text-white'
-                      }`}
-                    >
-                      {t.talle}
-                    </button>
+                    <div key={t.talle} className="flex flex-col items-center gap-1">
+                      <button
+                        disabled={!t.disponible}
+                        onClick={() => setTalleSeleccionado(t.talle)}
+                        className={`${mono.className} flex h-9 min-w-9 items-center justify-center border px-2 text-sm transition-colors ${
+                          !t.disponible
+                            ? 'cursor-not-allowed border-black/20 text-black/25 line-through'
+                            : talleSeleccionado === t.talle
+                              ? 'border-black bg-black text-white'
+                              : 'border-black text-black hover:bg-black hover:text-white'
+                        }`}
+                      >
+                        {t.talle}
+                      </button>
+                      {t.stock != null && (
+                        <span className={`${mono.className} text-[10px] text-black/40`}>
+                          {t.stock} disp.
+                        </span>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -237,7 +320,13 @@ Quedo atento. ¡Muchas gracias!`;
                 Stock
               </span>
               <p className={`${mono.className} mt-1 text-sm`}>
-                {agotado ? 'Sin stock por el momento' : `${producto.stockUnidades} unidades disponibles`}
+                {talleActual?.stock != null
+                  ? talleActual.stock === 0
+                    ? 'Sin stock para este talle'
+                    : `${talleActual.stock} unidades disponibles para ${talleSeleccionado}`
+                  : agotado
+                    ? 'Sin stock por el momento'
+                    : `${producto.stockUnidades} unidades disponibles`}
               </p>
             </div>
 
@@ -279,7 +368,8 @@ Quedo atento. ¡Muchas gracias!`;
                   onClick={() => {
                     addItem(producto, cantidad, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
                   }}
-                  className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black`}
+                  disabled={agotado}
+                  className={`${mono.className} w-full border border-black bg-black px-5 py-3 text-sm uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-black disabled:hover:text-white`}
                 >
                   Agregar al carrito
                 </button>

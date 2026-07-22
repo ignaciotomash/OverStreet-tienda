@@ -58,7 +58,7 @@ export default function CrearProducto() {
   const [precio, setPrecio] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [descripcionLarga, setDescripcionLarga] = useState('');
-  const [talles, setTalles] = useState<{ talle: string; disponible: boolean }[]>(
+  const [talles, setTalles] = useState<{ talle: string; disponible: boolean; stock?: number }[]>(
     TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true }))
   );
   const [nuevoTalle, setNuevoTalle] = useState('');
@@ -180,6 +180,17 @@ export default function CrearProducto() {
     setTalles((prev) =>
       prev.map((t) =>
         t.talle === talle ? { ...t, disponible: !t.disponible } : t
+      )
+    );
+  };
+
+  const actualizarStockTalle = (talle: string, stock: string) => {
+    const valor = stock === '' ? undefined : Number(stock);
+    setTalles((prev) =>
+      prev.map((t) =>
+        t.talle === talle
+          ? { ...t, stock: valor, disponible: valor === undefined ? t.disponible : valor > 0 }
+          : t
       )
     );
   };
@@ -376,6 +387,21 @@ export default function CrearProducto() {
                 placeholder="Nueva subcategoría..."
                 value={nuevaSub}
                 onChange={(e) => setNuevaSub(e.target.value)}
+                onBlur={() => {
+                  if (nuevaSub.trim()) {
+                    const value = nuevaSub.trim().toLowerCase().replace(/\s+/g, '-');
+                    const label = nuevaSub.trim();
+                    if (!subcategorias.find((s) => s.value === value)) {
+                      setSubcatExtras((prev) => ({
+                        ...prev,
+                        [categoria]: [...prev[categoria], { value, label }],
+                      }));
+                    }
+                    setSubcategoria(value);
+                  }
+                  setNuevaSub('');
+                  setMostrarInputSub(false);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && nuevaSub.trim()) {
                     const value = nuevaSub.trim().toLowerCase().replace(/\s+/g, '-');
@@ -418,6 +444,7 @@ export default function CrearProducto() {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { setMostrarInputSub(false); setNuevaSub(''); }}
                 className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10`}
               >
@@ -483,6 +510,14 @@ export default function CrearProducto() {
                   >
                     {t.talle}
                   </button>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Stock"
+                    value={t.stock ?? ''}
+                    onChange={(e) => actualizarStockTalle(t.talle, e.target.value)}
+                    className={`${mono.className} h-9 w-14 border border-black/20 bg-transparent px-1.5 text-center text-xs`}
+                  />
                   <button
                     type="button"
                     onClick={() => eliminarTalle(t.talle)}

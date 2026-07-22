@@ -72,7 +72,7 @@ export default function EditarProducto() {
   const [precio, setPrecio] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [descripcionLarga, setDescripcionLarga] = useState('');
-  const [talles, setTalles] = useState<{ talle: string; disponible: boolean }[]>(
+  const [talles, setTalles] = useState<{ talle: string; disponible: boolean; stock?: number }[]>(
     TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true }))
   );
   const [nuevoTalle, setNuevoTalle] = useState('');
@@ -234,6 +234,17 @@ export default function EditarProducto() {
     setTalles((prev) =>
       prev.map((t) =>
         t.talle === talle ? { ...t, disponible: !t.disponible } : t
+      )
+    );
+  };
+
+  const actualizarStockTalle = (talle: string, stock: string) => {
+    const valor = stock === '' ? undefined : Number(stock);
+    setTalles((prev) =>
+      prev.map((t) =>
+        t.talle === talle
+          ? { ...t, stock: valor, disponible: valor === undefined ? t.disponible : valor > 0 }
+          : t
       )
     );
   };
@@ -633,6 +644,14 @@ export default function EditarProducto() {
                     >
                       {t.talle}
                     </button>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="Stock"
+                      value={t.stock ?? ''}
+                      onChange={(e) => actualizarStockTalle(t.talle, e.target.value)}
+                      className={`${mono.className} h-9 w-14 border border-black/20 bg-transparent px-1.5 text-center text-xs`}
+                    />
                     <button
                       type="button"
                       onClick={() => eliminarTalle(t.talle)}

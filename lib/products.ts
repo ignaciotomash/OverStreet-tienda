@@ -3,6 +3,7 @@ export type Categoria = 'indumentaria' | 'tecnologia' | 'perfumeria';
 export interface Talle {
   talle: string;
   disponible: boolean;
+  stock?: number;
 }
 
 export interface SubcategoriaOpcion {
