@@ -114,7 +114,7 @@ export default function CrearProducto() {
   ];
 
   const handleArchivos = useCallback(async (files: FileList | File[]) => {
-    const raw = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    const raw = Array.from(files);
     if (raw.length === 0) return;
 
     const tieneHeic = raw.some((f) => {
@@ -124,13 +124,27 @@ export default function CrearProducto() {
     if (tieneHeic) setConvirtiendo(true);
 
     try {
-      const normalizadas = await Promise.all(raw.map((f) => normalizarImagen(f)));
-      setArchivos((prev) => [...prev, ...normalizadas]);
-      normalizadas.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => setPreviews((prev) => [...prev, e.target?.result as string]);
-        reader.readAsDataURL(file);
+      const resultados = await Promise.allSettled(raw.map((f) => normalizarImagen(f)));
+      const normalizadas: File[] = [];
+      resultados.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          normalizadas.push(r.value);
+        } else {
+          console.error(`Error convirtiendo ${raw[i].name}:`, r.reason);
+        }
       });
+      if (normalizadas.length > 0) {
+        setArchivos((prev) => [...prev, ...normalizadas]);
+        normalizadas.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (e) => setPreviews((prev) => [...prev, e.target?.result as string]);
+          reader.readAsDataURL(file);
+        });
+      }
+      const fallidos = resultados.filter((r) => r.status === 'rejected').length;
+      if (fallidos > 0) {
+        setMensaje({ tipo: 'error', texto: `${fallidos} imagen(es) no se pudo(ieron) procesar. Intentá con otro formato.` });
+      }
     } finally {
       setConvirtiendo(false);
     }
