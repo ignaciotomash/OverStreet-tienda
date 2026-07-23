@@ -256,7 +256,7 @@ export default function EditarProducto() {
       const urlsNuevas = archivos.length > 0 ? await Promise.all(archivos.map((f) => subirImagen(f))) : [];
       const todasLasUrls = [...existantes, ...urlsNuevas];
 
-      await updateProducto(productoSeleccionado.id, {
+      const result = await updateProducto(productoSeleccionado.id, {
         nombre,
         precio: Number(precio),
         categoria: editCategoria,
@@ -269,6 +269,10 @@ export default function EditarProducto() {
         stockUnidades: Number(stockUnidades),
         imagenes: todasLasUrls,
       });
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
 
       setProductos((prev) =>
         prev.map((p) =>
