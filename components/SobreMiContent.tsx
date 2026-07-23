@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { display, body, mono } from '@/lib/fonts';
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
@@ -37,8 +38,19 @@ export default function SobreMiContent() {
               </div>
             </Reveal>
 
-            {/* ── Espacio para imagen futura ── */}
-            <div className="hidden lg:block" />
+            {/* ── Imagen sobre mí ── */}
+            <Reveal direction="right">
+              <div className="hidden lg:flex items-center justify-center">
+                <Image
+                  src="/foto-sobre-mi.jpeg"
+                  alt="Foto sobre nosotros"
+                  width={500}
+                  height={600}
+                  className="rounded-2xl object-cover shadow-lg"
+                  priority
+                />
+              </div>
+            </Reveal>
 
           </div>
         </section>
