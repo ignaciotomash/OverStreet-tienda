@@ -30,26 +30,26 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
   };
 
   const construirMensajeWhatsApp = () => {
-    let mensaje = '¡Buenas! Quiero realizar el siguiente pedido:\n\n----------------------------------------\n\nProductos:';
+    let mensaje = '¡Buenas! Quiero realizar el siguiente pedido:\n----------------------------------------\nProductos:';
 
     items.forEach((item, index) => {
       const tieneTalle = item.producto.talles && item.talle;
       const tieneColor = item.producto.colores && item.color;
 
-      mensaje += `\n\n${index + 1}.\nCategoría: ${CATEGORIA_LABEL[item.producto.categoria]}\nProducto: ${item.producto.nombre}`;
+      mensaje += `\n${index + 1}.\nCategoría: ${CATEGORIA_LABEL[item.producto.categoria]}\nProducto: ${item.producto.nombre}`;
 
       if (tieneTalle) {
-        mensaje += `\n\nTalle: ${item.talle}`;
+        mensaje += `\nTalle: ${item.talle}`;
       }
 
       if (tieneColor) {
         mensaje += `\nColor: ${colorA_nombre(item.color!)}`;
       }
 
-      mensaje += `\nCantidad: ${item.cantidad}\n\n----------------------------------------`;
+      mensaje += `\nCantidad: ${item.cantidad}\n----------------------------------------`;
     });
 
-    mensaje += `\n\n*Total a pagar:*\n*${formatearPrecio(total)}*\n\n----------------------------------------\n\nQuedo atento a la confirmación del pedido para poder realizar el pago.\n\n¡Muchas gracias!`;
+    mensaje += `\n*Total a pagar:*\n*${formatearPrecio(total)}*\n----------------------------------------\nQuedo atento a la confirmación del pedido para poder realizar el pago.\n¡Muchas gracias!`;
 
     return encodeURIComponent(mensaje);
   };

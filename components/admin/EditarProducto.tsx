@@ -584,7 +584,7 @@ export default function EditarProducto() {
             placeholder="Descripción larga"
             value={descripcionLarga}
             onChange={(e) => setDescripcionLarga(e.target.value)}
-            rows={4}
+            rows={10}
             className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs resize-none`}
           />
 
