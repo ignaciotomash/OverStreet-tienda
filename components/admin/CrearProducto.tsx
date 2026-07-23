@@ -449,8 +449,8 @@ export default function CrearProducto() {
           placeholder="Descripción larga"
           value={descripcionLarga}
           onChange={(e) => setDescripcionLarga(e.target.value)}
-          rows={10}
-          className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs resize-y`}
+          rows={4}
+          className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs resize-none`}
         />
 
         {/* Talles (solo indumentaria) */}

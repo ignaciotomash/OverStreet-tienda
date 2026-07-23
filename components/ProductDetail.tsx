@@ -242,7 +242,7 @@ Quedo atento. ¡Muchas gracias!`;
 
             <div className="perforada my-5" />
 
-            <p className={`${body.className} text-base leading-relaxed text-black/70 whitespace-pre-line`}>
+            <p className={`${body.className} text-base leading-relaxed text-black/70`}>
               {producto.descripcionLarga}
             </p>
 
