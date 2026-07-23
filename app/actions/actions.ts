@@ -88,35 +88,30 @@ export async function createProducto(data: {
   stockUnidades?: number;
   imagenes: string[];
 }) {
-  try {
-    await requireAdmin();
-    const parsed = productoSchema.parse(data);
+  await requireAdmin();
+  const parsed = productoSchema.parse(data);
 
-    const prefix = parsed.categoria === 'indumentaria' ? 'ind' : parsed.categoria === 'tecnologia' ? 'tec' : 'perf';
-    const id = `${prefix}-${Date.now()}`;
+  const prefix = parsed.categoria === 'indumentaria' ? 'ind' : parsed.categoria === 'tecnologia' ? 'tec' : 'perf';
+  const id = `${prefix}-${Date.now()}`;
 
-    const producto = await prisma.producto.create({
-      data: {
-        id,
-        nombre: parsed.nombre,
-        precio: parsed.precio,
-        categoria: parsed.categoria,
-        subcategoria: parsed.subcategoria,
-        descripcion: parsed.descripcion,
-        descripcionLarga: parsed.descripcionLarga,
-        detalles: parsed.detalles,
-        talles: parsed.talles ?? undefined,
-        colores: parsed.colores ?? undefined,
-        stockUnidades: parsed.stockUnidades ?? undefined,
-        imagenes: parsed.imagenes,
-      },
-    });
+  const producto = await prisma.producto.create({
+    data: {
+      id,
+      nombre: parsed.nombre,
+      precio: parsed.precio,
+      categoria: parsed.categoria,
+      subcategoria: parsed.subcategoria,
+      descripcion: parsed.descripcion,
+      descripcionLarga: parsed.descripcionLarga,
+      detalles: parsed.detalles,
+      talles: parsed.talles ?? undefined,
+      colores: parsed.colores ?? undefined,
+      stockUnidades: parsed.stockUnidades ?? undefined,
+      imagenes: parsed.imagenes,
+    },
+  });
 
-    return { success: true, producto: mapProducto(producto) };
-  } catch (error) {
-    const mensaje = error instanceof Error ? error.message : 'Error desconocido al crear el producto';
-    return { success: false, error: mensaje };
-  }
+  return { success: true, producto: mapProducto(producto) };
 }
 
 export async function deleteProducto(id: string) {
@@ -141,32 +136,27 @@ export async function updateProducto(
     imagenes: string[];
   }
 ) {
-  try {
-    await requireAdmin();
-    const parsed = productoSchema.parse(data);
+  await requireAdmin();
+  const parsed = productoSchema.parse(data);
 
-    const producto = await prisma.producto.update({
-      where: { id },
-      data: {
-        nombre: parsed.nombre,
-        precio: parsed.precio,
-        categoria: parsed.categoria,
-        subcategoria: parsed.subcategoria,
-        descripcion: parsed.descripcion,
-        descripcionLarga: parsed.descripcionLarga,
-        detalles: parsed.detalles,
-        talles: parsed.talles ?? undefined,
-        colores: parsed.colores ?? undefined,
-        stockUnidades: parsed.stockUnidades ?? undefined,
-        imagenes: parsed.imagenes,
-      },
-    });
+  const producto = await prisma.producto.update({
+    where: { id },
+    data: {
+      nombre: parsed.nombre,
+      precio: parsed.precio,
+      categoria: parsed.categoria,
+      subcategoria: parsed.subcategoria,
+      descripcion: parsed.descripcion,
+      descripcionLarga: parsed.descripcionLarga,
+      detalles: parsed.detalles,
+      talles: parsed.talles ?? undefined,
+      colores: parsed.colores ?? undefined,
+      stockUnidades: parsed.stockUnidades ?? undefined,
+      imagenes: parsed.imagenes,
+    },
+  });
 
-    return { success: true, producto: mapProducto(producto) };
-  } catch (error) {
-    const mensaje = error instanceof Error ? error.message : 'Error desconocido al actualizar el producto';
-    return { success: false, error: mensaje };
-  }
+  return { success: true, producto: mapProducto(producto) };
 }
 
 export async function descontarStock(

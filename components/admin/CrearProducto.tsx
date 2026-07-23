@@ -200,7 +200,7 @@ export default function CrearProducto() {
     try {
       const urls = await Promise.all(archivos.map((f) => subirImagen(f)));
 
-      const result = await createProducto({
+      await createProducto({
         nombre,
         precio: Number(precio),
         categoria,
@@ -213,10 +213,6 @@ export default function CrearProducto() {
         stockUnidades: Number(stockUnidades),
         imagenes: urls,
       });
-
-      if (!result.success) {
-        throw new Error(result.error);
-      }
 
       setMensaje({ tipo: 'exito', texto: 'Producto creado exitosamente' });
       resetFormulario();
