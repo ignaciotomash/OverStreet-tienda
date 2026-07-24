@@ -247,3 +247,30 @@ export async function actualizarEstadoPedido(
   });
   return { success: true };
 }
+
+export async function descontarStock(items: PedidoItem[]): Promise<{ success: boolean }> {
+  for (const item of items) {
+    const producto = await prisma.producto.findUnique({ where: { id: item.producto.id } });
+    if (!producto) continue;
+
+    if (item.talle && producto.talles) {
+      const talles = producto.talles as { talle: string; disponible: boolean; stock?: number }[];
+      const updatedTalles = talles.map((t) => {
+        if (t.talle === item.talle && t.stock != null) {
+          return { ...t, stock: Math.max(0, t.stock - item.cantidad) };
+        }
+        return t;
+      });
+      await prisma.producto.update({
+        where: { id: item.producto.id },
+        data: { talles: updatedTalles as never },
+      });
+    } else if (producto.stockUnidades != null) {
+      await prisma.producto.update({
+        where: { id: item.producto.id },
+        data: { stockUnidades: Math.max(0, producto.stockUnidades - item.cantidad) },
+      });
+    }
+  }
+  return { success: true };
+}

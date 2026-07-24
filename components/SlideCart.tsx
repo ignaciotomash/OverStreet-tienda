@@ -5,7 +5,7 @@ import { formatearPrecio, colorA_nombre, type Categoria } from '@/lib/products';
 import { useCart, cartKey } from '@/lib/cart-context';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useAuthModal } from '@/lib/auth-modal-context';
-import { crearPedido } from '@/app/actions/actions';
+import { crearPedido, descontarStock } from '@/app/actions/actions';
 
 const WHATSAPP_NUMERO = '542976232709';
 
@@ -90,6 +90,7 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
       total,
     });
 
+    await descontarStock(pedidoItems);
     clearCart();
     window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${construirMensajeWhatsApp()}`, '_blank');
   };

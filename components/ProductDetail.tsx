@@ -157,11 +157,7 @@ Quedo atento. ¡Muchas gracias!`;
           <Reveal direction="left">
             <div className="relative border border-black bg-[#ECEAE4]">
               {agotado && (
-                <div className="absolute inset-0 z-20 flex items-start justify-center overflow-hidden pt-60 pointer-events-none">
-                  <div className={`${mono.className} w-[200%] -rotate-[35deg] bg-[#C1272D]/70 py-3 text-center text-sm font-bold uppercase tracking-widest text-white`}>
-                    Agotado
-                  </div>
-                </div>
+                <img src="/agotado.png" alt="Agotado" className="absolute inset-0 z-20 m-auto h-full w-full -rotate-45 scale-200 object-contain pointer-events-none" />
               )}
 
               {imagenes.length > 0 ? (
