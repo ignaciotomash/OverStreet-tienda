@@ -85,17 +85,23 @@ export default function EditarProducto() {
   }, [categoria]);
 
   const subBase = getSubcategoriasCompletas(categoria, productos);
+  const subcatConProductos = new Set(
+    productos.filter((p) => p.categoria === categoria).map((p) => p.subcategoria)
+  );
   const subcategorias = [
     ...subBase,
     ...subcatExtras[categoria].filter(
-      (extra) => !subBase.find((s) => s.value === extra.value)
+      (extra) => !subBase.find((s) => s.value === extra.value) && subcatConProductos.has(extra.value)
     ),
   ];
   const editSubBase = getSubcategoriasCompletas(editCategoria, productos);
+  const editSubcatConProductos = new Set(
+    productos.filter((p) => p.categoria === editCategoria).map((p) => p.subcategoria)
+  );
   const editSubcategorias = [
     ...editSubBase,
     ...subcatExtras[editCategoria].filter(
-      (extra) => !editSubBase.find((s) => s.value === extra.value)
+      (extra) => !editSubBase.find((s) => s.value === extra.value) && editSubcatConProductos.has(extra.value)
     ),
   ];
 
