@@ -6,20 +6,24 @@ import { mono } from '@/lib/fonts';
 import CrearProducto from './CrearProducto';
 import EditarProducto from './EditarProducto';
 import EliminarProducto from './EliminarProducto';
+import CuentasRegistradas from './CuentasRegistradas';
+import HistorialPedidos from './HistorialPedidos';
 
-type Tab = 'crear' | 'editar' | 'eliminar';
+type Tab = 'crear' | 'editar' | 'eliminar' | 'cuentas' | 'pedidos';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'crear', label: 'Crear' },
   { id: 'editar', label: 'Editar' },
   { id: 'eliminar', label: 'Eliminar' },
+  { id: 'cuentas', label: 'Cuentas' },
+  { id: 'pedidos', label: 'Pedidos' },
 ];
 
 export default function AdminTabs() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<Tab>(
-    tabParam === 'eliminar' || tabParam === 'editar' ? tabParam : 'crear'
+    tabParam === 'eliminar' || tabParam === 'editar' || tabParam === 'cuentas' || tabParam === 'pedidos' ? tabParam as Tab : 'crear'
   );
 
   return (
@@ -47,6 +51,8 @@ export default function AdminTabs() {
         {activeTab === 'crear' && <CrearProducto />}
         {activeTab === 'editar' && <EditarProducto />}
         {activeTab === 'eliminar' && <EliminarProducto />}
+        {activeTab === 'cuentas' && <CuentasRegistradas />}
+        {activeTab === 'pedidos' && <HistorialPedidos />}
       </div>
     </div>
   );

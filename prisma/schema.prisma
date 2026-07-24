@@ -33,3 +33,17 @@ model Producto {
 
   @@map("productos")
 }
+
+model Pedido {
+  id            String   @id @default(cuid())
+  userId        String
+  usuarioNombre String
+  usuarioFoto   String?
+  items         Json
+  total         Int
+  estado        String   @default("pendiente")
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  @@map("pedidos")
+}
