@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { mono, body } from '@/lib/fonts';
-import { getSubcategoriasCompletas, COLORES_PREDEFINIDOS, COLORES_CLAROS, type Categoria, type Producto } from '@/lib/products';
+import { getSubcategoriasCompletas, COLORES_PREDEFINIDOS, COLORES_CLAROS, type Categoria, type Producto, type Talle } from '@/lib/products';
 import { subirImagen, normalizarImagen } from '@/lib/upload';
 import { getProductos, updateProducto } from '@/app/actions/actions';
 import ProductCard from '../ProductCard';
@@ -35,16 +35,17 @@ export default function EditarProducto() {
   const [precio, setPrecio] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [descripcionLarga, setDescripcionLarga] = useState('');
-  const [talles, setTalles] = useState<{ talle: string; disponible: boolean; stock?: number }[]>(
+  const [talles, setTalles] = useState<Talle[]>(
     TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true }))
   );
   const [nuevoTalle, setNuevoTalle] = useState('');
   const [colores, setColores] = useState<string[]>([]);
+  const [talleActivo, setTalleActivo] = useState<string | null>(null);
   const [detalles, setDetalles] = useState<string[]>([]);
   const [nuevoDetalle, setNuevoDetalle] = useState('');
   const [stockUnidades, setStockUnidades] = useState('');
 
-  const [subcatExtras] = useState<Record<Categoria, { value: string; label: string }[]>>(() => {
+  const [subcatExtras, setSubcatExtras] = useState<Record<Categoria, { value: string; label: string }[]>>(() => {
     if (typeof window === 'undefined') return { indumentaria: [], tecnologia: [], perfumeria: [] };
     try {
       const stored = localStorage.getItem('subcatExtras');
@@ -84,26 +85,31 @@ export default function EditarProducto() {
     setBusqueda('');
   }, [categoria]);
 
+  useEffect(() => {
+    if (editCategoria === 'indumentaria') {
+      const total = talles.reduce((sum, t) => sum + (t.stock ?? 0), 0);
+      setStockUnidades(total > 0 ? String(total) : '');
+    }
+  }, [talles, editCategoria]);
+
+  useEffect(() => {
+    localStorage.setItem('subcatExtras', JSON.stringify(subcatExtras));
+  }, [subcatExtras]);
+
   const subBase = getSubcategoriasCompletas(categoria, productos);
-  const subcatConProductos = new Set(
-    productos.filter((p) => p.categoria === categoria).map((p) => p.subcategoria)
-  );
-  const subcategorias = [
-    ...subBase,
-    ...subcatExtras[categoria].filter(
-      (extra) => !subBase.find((s) => s.value === extra.value) && subcatConProductos.has(extra.value)
-    ),
-  ];
+  const extrasDedup = [...new Map(
+    subcatExtras[categoria]
+      .filter((extra) => !subBase.find((s) => s.value === extra.value))
+      .map((extra) => [extra.value, extra])
+  ).values()];
+  const subcategorias = [...subBase, ...extrasDedup];
   const editSubBase = getSubcategoriasCompletas(editCategoria, productos);
-  const editSubcatConProductos = new Set(
-    productos.filter((p) => p.categoria === editCategoria).map((p) => p.subcategoria)
-  );
-  const editSubcategorias = [
-    ...editSubBase,
-    ...subcatExtras[editCategoria].filter(
-      (extra) => !editSubBase.find((s) => s.value === extra.value) && editSubcatConProductos.has(extra.value)
-    ),
-  ];
+  const editExtrasDedup = [...new Map(
+    subcatExtras[editCategoria]
+      .filter((extra) => !editSubBase.find((s) => s.value === extra.value))
+      .map((extra) => [extra.value, extra])
+  ).values()];
+  const editSubcategorias = [...editSubBase, ...editExtrasDedup];
 
   const normalizar = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const busquedaNorm = normalizar(busqueda);
@@ -124,6 +130,7 @@ export default function EditarProducto() {
     setDescripcionLarga(producto.descripcionLarga);
     setTalles(producto.talles ?? TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true })));
     setColores(producto.colores ?? []);
+    setTalleActivo(null);
     setDetalles(producto.detalles);
     setStockUnidades(producto.stockUnidades != null ? String(producto.stockUnidades) : '');
     setExistantes(producto.imagenes && producto.imagenes.length > 0 ? producto.imagenes : (producto.foto ? [producto.foto] : []));
@@ -207,6 +214,27 @@ export default function EditarProducto() {
     );
   };
 
+  const seleccionarTalleActivo = (talle: string) => {
+    setTalles((prev) =>
+      prev.map((t) => {
+        if (t.talle === talleActivo) {
+          return { ...t, colores: colores.length > 0 ? colores : undefined };
+        }
+        return t;
+      })
+    );
+
+    if (talle === talleActivo) {
+      setTalleActivo(null);
+      setColores([]);
+      return;
+    }
+
+    const talleObj = talles.find((t) => t.talle === talle);
+    setTalleActivo(talle);
+    setColores(talleObj?.colores ?? []);
+  };
+
   const actualizarStockTalle = (talle: string, stock: string) => {
     const valor = stock === '' ? undefined : Number(stock);
     setTalles((prev) =>
@@ -231,6 +259,20 @@ export default function EditarProducto() {
 
   const eliminarColor = (color: string) => {
     setColores((prev) => prev.filter((c) => c !== color));
+  };
+
+  const eliminarSubcatExtra = () => {
+    const esBase = editSubBase.some((s) => s.value === editSubcategoria);
+    const tieneProductos = productos.some(
+      (p) => p.categoria === editCategoria && p.subcategoria === editSubcategoria
+    );
+    if (!esBase && !tieneProductos) {
+      setSubcatExtras((prev) => ({
+        ...prev,
+        [editCategoria]: prev[editCategoria].filter((e) => e.value !== editSubcategoria),
+      }));
+      setEditSubcategoria(editSubBase[0]?.value ?? '');
+    }
   };
 
   const agregarDetalle = () => {
@@ -262,6 +304,13 @@ export default function EditarProducto() {
       const urlsNuevas = archivos.length > 0 ? await Promise.all(archivos.map((f) => subirImagen(f))) : [];
       const todasLasUrls = [...existantes, ...urlsNuevas];
 
+      const tallesFinales = talles.map((t) => {
+        if (t.talle === talleActivo) {
+          return { ...t, colores: colores.length > 0 ? colores : undefined };
+        }
+        return t;
+      });
+
       await updateProducto(productoSeleccionado.id, {
         nombre,
         precio: Number(precio),
@@ -270,8 +319,8 @@ export default function EditarProducto() {
         descripcion,
         descripcionLarga,
         detalles,
-        talles: editCategoria === 'indumentaria' ? talles : undefined,
-        colores: colores.length > 0 ? colores : undefined,
+        talles: editCategoria === 'indumentaria' ? tallesFinales : undefined,
+        colores: colores.length > 0 && !talleActivo ? colores : undefined,
         stockUnidades: Number(stockUnidades),
         imagenes: todasLasUrls,
       });
@@ -288,8 +337,8 @@ export default function EditarProducto() {
                 descripcion,
                 descripcionLarga,
                 detalles,
-                talles: editCategoria === 'indumentaria' ? talles : undefined,
-                colores: colores.length > 0 ? colores : undefined,
+                talles: editCategoria === 'indumentaria' ? tallesFinales : undefined,
+                colores: colores.length > 0 && !talleActivo ? colores : undefined,
                 stockUnidades: Number(stockUnidades),
                 imagenes: todasLasUrls,
                 foto: todasLasUrls[0],
@@ -560,6 +609,14 @@ export default function EditarProducto() {
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              onClick={eliminarSubcatExtra}
+              disabled={editSubBase.some((s) => s.value === editSubcategoria) || productos.some((p) => p.categoria === editCategoria && p.subcategoria === editSubcategoria)}
+              className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10 disabled:opacity-30 disabled:cursor-not-allowed`}
+            >
+              ×
+            </button>
           </div>
 
           <input
@@ -655,6 +712,41 @@ export default function EditarProducto() {
             <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
               Colores
             </span>
+
+            {editCategoria === 'indumentaria' && (
+              <div className="mt-2">
+                <span className={`${mono.className} text-[10px] uppercase tracking-wider text-black/40`}>
+                  Asignar colores a talle:
+                </span>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {talles.map((t) => (
+                    <button
+                      key={t.talle}
+                      type="button"
+                      onClick={() => seleccionarTalleActivo(t.talle)}
+                      className={`${mono.className} flex h-8 min-w-8 items-center justify-center border px-2 text-xs transition-all ${
+                        talleActivo === t.talle
+                          ? 'border-black bg-black text-white'
+                          : t.colores && t.colores.length > 0
+                            ? 'border-black/40 bg-black/5 text-black'
+                            : 'border-black/20 text-black/40 hover:border-black/40'
+                      }`}
+                    >
+                      {t.talle}
+                      {t.colores && t.colores.length > 0 && talleActivo !== t.talle && (
+                        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-black/40" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {talleActivo && (
+                  <p className={`${mono.className} mt-1.5 text-[10px] text-black/40`}>
+                    Editando colores del talle {talleActivo}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="mt-2 flex flex-wrap gap-2">
               {colores.map((color) => (
                 <div key={color} className="flex items-center gap-1">
@@ -758,7 +850,8 @@ export default function EditarProducto() {
             placeholder="Unidades en stock"
             value={stockUnidades}
             onChange={(e) => setStockUnidades(e.target.value)}
-            className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
+            readOnly={editCategoria === 'indumentaria'}
+            className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs ${editCategoria === 'indumentaria' ? 'bg-black/5 cursor-not-allowed' : ''}`}
           />
 
           {mensaje && (

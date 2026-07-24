@@ -4,6 +4,7 @@ export interface Talle {
   talle: string;
   disponible: boolean;
   stock?: number;
+  colores?: string[];
 }
 
 export interface SubcategoriaOpcion {

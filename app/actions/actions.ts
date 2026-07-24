@@ -72,7 +72,7 @@ export async function createProducto(data: {
   descripcion: string;
   descripcionLarga: string;
   detalles: string[];
-  talles?: { talle: string; disponible: boolean; stock?: number }[];
+  talles?: { talle: string; disponible: boolean; stock?: number; colores?: string[] }[];
   colores?: string[];
   stockUnidades?: number;
   imagenes: string[];
@@ -115,7 +115,7 @@ export async function updateProducto(
     descripcion: string;
     descripcionLarga: string;
     detalles: string[];
-    talles?: { talle: string; disponible: boolean; stock?: number }[];
+    talles?: { talle: string; disponible: boolean; stock?: number; colores?: string[] }[];
     colores?: string[];
     stockUnidades?: number;
     imagenes: string[];

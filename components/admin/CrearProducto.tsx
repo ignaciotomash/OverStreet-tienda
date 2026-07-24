@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { mono, body } from '@/lib/fonts';
-import { getSubcategoriasCompletas, COLORES_PREDEFINIDOS, COLORES_CLAROS, type Categoria, type Producto } from '@/lib/products';
+import { getSubcategoriasCompletas, COLORES_PREDEFINIDOS, COLORES_CLAROS, type Categoria, type Producto, type Talle } from '@/lib/products';
 import { subirImagen, normalizarImagen } from '@/lib/upload';
 import { createProducto, getProductos } from '@/app/actions/actions';
 
@@ -21,11 +21,12 @@ export default function CrearProducto() {
   const [precio, setPrecio] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [descripcionLarga, setDescripcionLarga] = useState('');
-  const [talles, setTalles] = useState<{ talle: string; disponible: boolean; stock?: number }[]>(
+  const [talles, setTalles] = useState<Talle[]>(
     TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true }))
   );
   const [nuevoTalle, setNuevoTalle] = useState('');
   const [colores, setColores] = useState<string[]>([]);
+  const [talleActivo, setTalleActivo] = useState<string | null>(null);
   const [detalles, setDetalles] = useState<string[]>([]);
   const [nuevoDetalle, setNuevoDetalle] = useState('');
   const [stockUnidades, setStockUnidades] = useState('');
@@ -68,16 +69,20 @@ export default function CrearProducto() {
     localStorage.setItem('subcatExtras', JSON.stringify(subcatExtras));
   }, [subcatExtras]);
 
+  useEffect(() => {
+    if (categoria === 'indumentaria') {
+      const total = talles.reduce((sum, t) => sum + (t.stock ?? 0), 0);
+      setStockUnidades(total > 0 ? String(total) : '');
+    }
+  }, [talles, categoria]);
+
   const subBase = getSubcategoriasCompletas(categoria, productos);
-  const subcatConProductos = new Set(
-    productos.filter((p) => p.categoria === categoria).map((p) => p.subcategoria)
-  );
-  const subcategorias = [
-    ...subBase,
-    ...subcatExtras[categoria].filter(
-      (extra) => !subBase.find((s) => s.value === extra.value) && subcatConProductos.has(extra.value)
-    ),
-  ];
+  const extrasDedup = [...new Map(
+    subcatExtras[categoria]
+      .filter((extra) => !subBase.find((s) => s.value === extra.value))
+      .map((extra) => [extra.value, extra])
+  ).values()];
+  const subcategorias = [...subBase, ...extrasDedup];
 
   const handleArchivos = useCallback(async (files: FileList | File[]) => {
     const raw = Array.from(files);
@@ -150,6 +155,27 @@ export default function CrearProducto() {
     );
   };
 
+  const seleccionarTalleActivo = (talle: string) => {
+    setTalles((prev) =>
+      prev.map((t) => {
+        if (t.talle === talleActivo) {
+          return { ...t, colores: colores.length > 0 ? colores : undefined };
+        }
+        return t;
+      })
+    );
+
+    if (talle === talleActivo) {
+      setTalleActivo(null);
+      setColores([]);
+      return;
+    }
+
+    const talleObj = talles.find((t) => t.talle === talle);
+    setTalleActivo(talle);
+    setColores(talleObj?.colores ?? []);
+  };
+
   const actualizarStockTalle = (talle: string, stock: string) => {
     const valor = stock === '' ? undefined : Number(stock);
     setTalles((prev) =>
@@ -174,6 +200,20 @@ export default function CrearProducto() {
 
   const eliminarColor = (color: string) => {
     setColores((prev) => prev.filter((c) => c !== color));
+  };
+
+  const eliminarSubcatExtra = () => {
+    const esBase = subBase.some((s) => s.value === subcategoria);
+    const tieneProductos = productos.some(
+      (p) => p.categoria === categoria && p.subcategoria === subcategoria
+    );
+    if (!esBase && !tieneProductos) {
+      setSubcatExtras((prev) => ({
+        ...prev,
+        [categoria]: prev[categoria].filter((e) => e.value !== subcategoria),
+      }));
+      setSubcategoria(subBase[0]?.value ?? '');
+    }
   };
 
   const agregarDetalle = () => {
@@ -203,6 +243,13 @@ export default function CrearProducto() {
     try {
       const urls = await Promise.all(archivos.map((f) => subirImagen(f)));
 
+      const tallesFinales = talles.map((t) => {
+        if (t.talle === talleActivo) {
+          return { ...t, colores: colores.length > 0 ? colores : undefined };
+        }
+        return t;
+      });
+
       await createProducto({
         nombre,
         precio: Number(precio),
@@ -211,8 +258,8 @@ export default function CrearProducto() {
         descripcion,
         descripcionLarga,
         detalles,
-        talles: categoria === 'indumentaria' ? talles : undefined,
-        colores: colores.length > 0 ? colores : undefined,
+        talles: categoria === 'indumentaria' ? tallesFinales : undefined,
+        colores: colores.length > 0 && !talleActivo ? colores : undefined,
         stockUnidades: Number(stockUnidades),
         imagenes: urls,
       });
@@ -236,6 +283,7 @@ export default function CrearProducto() {
     setDescripcionLarga('');
     setTalles(TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true })));
     setColores([]);
+    setTalleActivo(null);
     setDetalles([]);
     setStockUnidades('');
   };
@@ -343,6 +391,14 @@ export default function CrearProducto() {
               className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10`}
             >
               +
+            </button>
+            <button
+              type="button"
+              onClick={eliminarSubcatExtra}
+              disabled={subBase.some((s) => s.value === subcategoria) || productos.some((p) => p.categoria === categoria && p.subcategoria === subcategoria)}
+              className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10 disabled:opacity-30 disabled:cursor-not-allowed`}
+            >
+              ×
             </button>
           </div>
 
@@ -519,6 +575,41 @@ export default function CrearProducto() {
           <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
             Colores
           </span>
+
+          {categoria === 'indumentaria' && (
+            <div className="mt-2">
+              <span className={`${mono.className} text-[10px] uppercase tracking-wider text-black/40`}>
+                Asignar colores a talle:
+              </span>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {talles.map((t) => (
+                  <button
+                    key={t.talle}
+                    type="button"
+                    onClick={() => seleccionarTalleActivo(t.talle)}
+                    className={`${mono.className} flex h-8 min-w-8 items-center justify-center border px-2 text-xs transition-all ${
+                      talleActivo === t.talle
+                        ? 'border-black bg-black text-white'
+                        : t.colores && t.colores.length > 0
+                          ? 'border-black/40 bg-black/5 text-black'
+                          : 'border-black/20 text-black/40 hover:border-black/40'
+                    }`}
+                  >
+                    {t.talle}
+                    {t.colores && t.colores.length > 0 && talleActivo !== t.talle && (
+                      <span className="ml-1 h-1.5 w-1.5 rounded-full bg-black/40" />
+                    )}
+                  </button>
+                ))}
+              </div>
+              {talleActivo && (
+                <p className={`${mono.className} mt-1.5 text-[10px] text-black/40`}>
+                  Editando colores del talle {talleActivo}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="mt-2 flex flex-wrap gap-2">
             {colores.map((color) => (
               <div key={color} className="flex items-center gap-1">
@@ -624,7 +715,8 @@ export default function CrearProducto() {
           placeholder="Unidades en stock"
           value={stockUnidades}
           onChange={(e) => setStockUnidades(e.target.value)}
-          className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
+          readOnly={categoria === 'indumentaria'}
+          className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs ${categoria === 'indumentaria' ? 'bg-black/5 cursor-not-allowed' : ''}`}
         />
 
         {/* Mensaje de feedback */}

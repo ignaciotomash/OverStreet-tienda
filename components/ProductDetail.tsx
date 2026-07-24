@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { display, body, mono } from '@/lib/fonts';
-import { formatearPrecio, getSubcategoriaLabel, COLORES_MOCKUP, type Producto } from '@/lib/products';
+import { formatearPrecio, getSubcategoriaLabel, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
 import NavBar from './NavBar';
 import Footer from './Footer';
@@ -25,6 +25,7 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
   const [cantidad, setCantidad] = useState(1);
   const [talleSeleccionado, setTalleSeleccionado] = useState<string | null>(null);
   const [colorSeleccionado, setColorSeleccionado] = useState<string | null>(null);
+  const [coloresVisibles, setColoresVisibles] = useState(true);
   const [imagenActiva, setImagenActiva] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -105,7 +106,20 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
 
   const stockMaximo = talleActual?.stock ?? producto.stockUnidades ?? 1;
 
-  const colores = producto.colores ?? (producto.categoria === 'indumentaria' ? COLORES_MOCKUP : undefined);
+  const colores = talleActual?.colores ?? producto.colores ?? undefined;
+
+  useEffect(() => {
+    if (talleSeleccionado && colores && colores.length > 0) {
+      setColoresVisibles(false);
+      const timer = setTimeout(() => {
+        setColorSeleccionado(null);
+        setColoresVisibles(true);
+      }, 150);
+      return () => clearTimeout(timer);
+    } else {
+      setColorSeleccionado(null);
+    }
+  }, [talleSeleccionado]);
 
   const enCarrito = isInCart(producto.id, talleSeleccionado ?? undefined, colorSeleccionado ?? undefined);
 
@@ -264,7 +278,7 @@ Quedo atento. ¡Muchas gracias!`;
                         {t.talle}
                       </button>
                       {t.stock != null && (
-                        <span className={`${mono.className} text-[10px] text-black/40`}>
+                        <span className={`${mono.className} text-[10px] text-black`}>
                           {t.stock} disp.
                         </span>
                       )}
@@ -274,12 +288,47 @@ Quedo atento. ¡Muchas gracias!`;
               </div>
             )}
 
-            {colores && (
+            {producto.categoria === 'indumentaria' && producto.talles ? (
+              colores && colores.length > 0 ? (
+                <div className="mt-4">
+                  <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
+                    Color
+                  </span>
+                  <div
+                    className={`mt-2 flex gap-2 transition-all duration-200 ${
+                      coloresVisibles ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+                    }`}
+                  >
+                    {colores.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setColorSeleccionado(color)}
+                        className={`h-7 w-7 rounded-full border-2 transition-all ${
+                          colorSeleccionado === color
+                            ? 'scale-110 border-black'
+                            : 'border-black/20 hover:border-black/50'
+                        }`}
+                        style={{ backgroundColor: color }}
+                        aria-label={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className={`${mono.className} mt-4 text-xs text-black`}>
+                  Seleccione un talle para ver sus colores disponibles.
+                </p>
+              )
+            ) : colores && colores.length > 0 ? (
               <div className="mt-4">
                 <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
                   Color
                 </span>
-                <div className="mt-2 flex gap-2">
+                <div
+                  className={`mt-2 flex gap-2 transition-all duration-200 ${
+                    coloresVisibles ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+                  }`}
+                >
                   {colores.map((color) => (
                     <button
                       key={color}
@@ -295,7 +344,7 @@ Quedo atento. ¡Muchas gracias!`;
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
 
             <div className="mt-8 border-t border-black pt-5">
               <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
