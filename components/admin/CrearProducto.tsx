@@ -19,6 +19,8 @@ export default function CrearProducto() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');
+  const [enOferta, setEnOferta] = useState(false);
+  const [precioOferta, setPrecioOferta] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [descripcionLarga, setDescripcionLarga] = useState('');
   const [talles, setTalles] = useState<Talle[]>(
@@ -252,7 +254,8 @@ export default function CrearProducto() {
 
       await createProducto({
         nombre,
-        precio: Number(precio),
+        precio: enOferta && precioOferta ? Number(precioOferta) : Number(precio),
+        precioOriginal: enOferta && precioOferta ? Number(precio) : undefined,
         categoria,
         subcategoria,
         descripcion,
@@ -279,6 +282,8 @@ export default function CrearProducto() {
     setPreviews([]);
     setNombre('');
     setPrecio('');
+    setEnOferta(false);
+    setPrecioOferta('');
     setDescripcion('');
     setDescripcionLarga('');
     setTalles(TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true })));
@@ -494,6 +499,33 @@ export default function CrearProducto() {
           className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
         />
 
+        {/* Oferta */}
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enOferta}
+              onChange={(e) => {
+                setEnOferta(e.target.checked);
+                setPrecioOferta('');
+              }}
+              className="h-4 w-4 accent-[#16a34a]"
+            />
+            <span className={`${mono.className} text-xs uppercase tracking-wide text-black/70`}>
+              Este producto está en oferta
+            </span>
+          </label>
+          {enOferta && (
+            <input
+              type="number"
+              placeholder="Precio de oferta"
+              value={precioOferta}
+              onChange={(e) => setPrecioOferta(e.target.value)}
+              className={`${mono.className} border border-[#16a34a]/30 bg-[#22c55e]/5 px-3 py-2 text-xs`}
+            />
+          )}
+        </div>
+
         {/* Descripción corta */}
         <input
           type="text"
@@ -520,7 +552,7 @@ export default function CrearProducto() {
             </span>
             <div className="mt-2 flex flex-wrap gap-2">
               {talles.map((t) => (
-                <div key={t.talle} className="flex items-center gap-1">
+                <div key={t.talle} className="flex min-w-[140px] items-center gap-1">
                   <button
                     type="button"
                     onClick={() => toggleTalle(t.talle)}

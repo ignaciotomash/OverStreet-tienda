@@ -33,6 +33,8 @@ export default function EditarProducto() {
   const [editSubcategoria, setEditSubcategoria] = useState('remeras');
   const [nombre, setNombre] = useState('');
   const [precio, setPrecio] = useState('');
+  const [enOferta, setEnOferta] = useState(false);
+  const [precioOferta, setPrecioOferta] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [descripcionLarga, setDescripcionLarga] = useState('');
   const [talles, setTalles] = useState<Talle[]>(
@@ -125,7 +127,9 @@ export default function EditarProducto() {
     setEditCategoria(producto.categoria);
     setEditSubcategoria(producto.subcategoria);
     setNombre(producto.nombre);
-    setPrecio(String(producto.precio));
+    setPrecio(producto.precioOriginal != null ? String(producto.precioOriginal) : String(producto.precio));
+    setEnOferta(producto.precioOriginal != null && producto.precioOriginal > producto.precio);
+    setPrecioOferta(producto.precioOriginal != null ? String(producto.precio) : '');
     setDescripcion(producto.descripcion);
     setDescripcionLarga(producto.descripcionLarga);
     setTalles(producto.talles ?? TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true })));
@@ -313,7 +317,8 @@ export default function EditarProducto() {
 
       await updateProducto(productoSeleccionado.id, {
         nombre,
-        precio: Number(precio),
+        precio: enOferta && precioOferta ? Number(precioOferta) : Number(precio),
+        precioOriginal: enOferta && precioOferta ? Number(precio) : undefined,
         categoria: editCategoria,
         subcategoria: editSubcategoria,
         descripcion,
@@ -331,7 +336,8 @@ export default function EditarProducto() {
             ? {
                 ...p,
                 nombre,
-                precio: Number(precio),
+                precio: enOferta && precioOferta ? Number(precioOferta) : Number(precio),
+                precioOriginal: enOferta && precioOferta ? Number(precio) : undefined,
                 categoria: editCategoria,
                 subcategoria: editSubcategoria,
                 descripcion,
@@ -635,6 +641,32 @@ export default function EditarProducto() {
             className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
           />
 
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enOferta}
+                onChange={(e) => {
+                  setEnOferta(e.target.checked);
+                  setPrecioOferta('');
+                }}
+                className="h-4 w-4 accent-[#16a34a]"
+              />
+              <span className={`${mono.className} text-xs uppercase tracking-wide text-black/70`}>
+                Este producto está en oferta
+              </span>
+            </label>
+            {enOferta && (
+              <input
+                type="number"
+                placeholder="Precio de oferta"
+                value={precioOferta}
+                onChange={(e) => setPrecioOferta(e.target.value)}
+                className={`${mono.className} border border-[#16a34a]/30 bg-[#22c55e]/5 px-3 py-2 text-xs`}
+              />
+            )}
+          </div>
+
           <input
             type="text"
             placeholder="Descripción corta"
@@ -658,14 +690,14 @@ export default function EditarProducto() {
               </span>
               <div className="mt-2 flex flex-wrap gap-2">
                 {talles.map((t) => (
-                  <div key={t.talle} className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => toggleTalle(t.talle)}
-                      className={`${mono.className} flex h-9 min-w-9 items-center justify-center border px-2 text-sm transition-colors ${
-                        t.disponible
-                          ? 'border-black bg-black text-white'
-                          : 'border-black/20 text-black/25 line-through'
+                <div key={t.talle} className="flex min-w-[140px] items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleTalle(t.talle)}
+                    className={`${mono.className} flex h-9 min-w-9 items-center justify-center border px-2 text-sm transition-colors ${
+                      t.disponible
+                        ? 'border-black bg-black text-white'
+                        : 'border-black/20 text-black/25 line-through'
                       }`}
                     >
                       {t.talle}

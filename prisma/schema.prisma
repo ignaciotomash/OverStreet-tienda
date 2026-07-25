@@ -17,6 +17,7 @@ model Producto {
   id               String    @id
   nombre           String
   precio           Int
+  precioOriginal   Int?       @map("precio_original")
   categoria        Categoria
   subcategoria     String
   descripcion      String

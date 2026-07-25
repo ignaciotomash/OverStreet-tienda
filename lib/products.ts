@@ -23,6 +23,7 @@ export interface Producto {
   id: string;
   nombre: string;
   precio: number;
+  precioOriginal?: number;
   categoria: Categoria;
   subcategoria: string;
   descripcion: string;
@@ -84,6 +85,9 @@ export const formatearPrecio = (valor: number) =>
     currency: 'ARS',
     maximumFractionDigits: 0,
   });
+
+export const calcularDescuento = (precio: number, precioOriginal: number): number =>
+  Math.round(((precioOriginal - precio) / precioOriginal) * 100);
 
 export const getSubcategoriaLabel = (categoria: Categoria, subcategoria: string): string =>
   SUBCATEGORIAS[categoria].find((s) => s.value === subcategoria)?.label ?? subcategoria;

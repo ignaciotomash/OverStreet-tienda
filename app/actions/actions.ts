@@ -8,6 +8,7 @@ function mapProducto(db: {
   id: string;
   nombre: string;
   precio: number;
+  precioOriginal: number | null;
   categoria: "indumentaria" | "tecnologia" | "perfumeria";
   subcategoria: string;
   descripcion: string;
@@ -27,6 +28,7 @@ function mapProducto(db: {
     id: db.id,
     nombre: db.nombre,
     precio: db.precio,
+    precioOriginal: db.precioOriginal ?? undefined,
     categoria: db.categoria as Categoria,
     subcategoria: db.subcategoria,
     descripcion: db.descripcion,
@@ -67,6 +69,7 @@ export async function getProductoPorId(id: string): Promise<Producto | null> {
 export async function createProducto(data: {
   nombre: string;
   precio: number;
+  precioOriginal?: number;
   categoria: Categoria;
   subcategoria: string;
   descripcion: string;
@@ -85,6 +88,7 @@ export async function createProducto(data: {
       id,
       nombre: data.nombre,
       precio: data.precio,
+      precioOriginal: data.precioOriginal ?? null,
       categoria: data.categoria,
       subcategoria: data.subcategoria,
       descripcion: data.descripcion,
@@ -110,6 +114,7 @@ export async function updateProducto(
   data: {
     nombre: string;
     precio: number;
+    precioOriginal?: number;
     categoria: Categoria;
     subcategoria: string;
     descripcion: string;
@@ -126,6 +131,7 @@ export async function updateProducto(
     data: {
       nombre: data.nombre,
       precio: data.precio,
+      precioOriginal: data.precioOriginal ?? null,
       categoria: data.categoria,
       subcategoria: data.subcategoria,
       descripcion: data.descripcion,
@@ -261,9 +267,10 @@ export async function descontarStock(items: PedidoItem[]): Promise<{ success: bo
         }
         return t;
       });
+      const nuevoStockTotal = updatedTalles.reduce((sum, t) => sum + (t.stock ?? 0), 0);
       await prisma.producto.update({
         where: { id: item.producto.id },
-        data: { talles: updatedTalles as never },
+        data: { talles: updatedTalles as never, stockUnidades: nuevoStockTotal },
       });
     } else if (producto.stockUnidades != null) {
       await prisma.producto.update({

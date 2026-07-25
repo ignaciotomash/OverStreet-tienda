@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { display, body, mono } from '@/lib/fonts';
-import { formatearPrecio, type Producto } from '@/lib/products';
+import { formatearPrecio, calcularDescuento, type Producto } from '@/lib/products';
 import { incrementarVistas } from '@/app/actions/actions';
 import Swatch from './Swatch';
 
@@ -15,6 +15,8 @@ interface ProductCardProps {
 export default function ProductCard({ producto, subcategoria, onAntesDeNavegar, onEliminar, onSeleccionar }: ProductCardProps) {
   const agotado = producto.stockUnidades === 0;
   const esAdmin = !!onEliminar || !!onSeleccionar;
+  const enOferta = producto.precioOriginal != null && producto.precioOriginal > producto.precio;
+  const descuento = enOferta ? calcularDescuento(producto.precio, producto.precioOriginal!) : 0;
 
   const handleClick = (e: React.MouseEvent) => {
     if (onSeleccionar) {
@@ -47,6 +49,14 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar, 
           </div>
         )}
 
+        {enOferta && !esAdmin && (
+          <div className="absolute right-2.5 top-2.5 z-10 border border-[#16a34a] bg-[#22c55e] px-1.5 py-0.5">
+            <span className={`${mono.className} text-[10px] font-bold uppercase text-white`}>
+              Oferta -{descuento}%
+            </span>
+          </div>
+        )}
+
         {agotado && (
           <img src="/agotado.png" alt="Agotado" className="absolute inset-0 z-10 m-auto h-full w-full -rotate-45 scale-150 object-contain pointer-events-none -mt-10" />
         )}
@@ -74,7 +84,14 @@ export default function ProductCard({ producto, subcategoria, onAntesDeNavegar, 
           <div className="perforada my-2" />
 
           <div className="flex items-end justify-between">
-            <span className={`${mono.className} text-base font-bold`}>{formatearPrecio(producto.precio)}</span>
+            {enOferta ? (
+              <div className="flex flex-col">
+                <span className={`${mono.className} text-xs text-black/40 line-through`}>{formatearPrecio(producto.precioOriginal!)}</span>
+                <span className={`${mono.className} text-base font-bold text-[#16a34a]`}>{formatearPrecio(producto.precio)}</span>
+              </div>
+            ) : (
+              <span className={`${mono.className} text-base font-bold`}>{formatearPrecio(producto.precio)}</span>
+            )}
           </div>
 
           {producto.categoria === 'indumentaria' && producto.talles && (

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { display, body, mono } from '@/lib/fonts';
-import { formatearPrecio, getSubcategoriaLabel, type Producto } from '@/lib/products';
+import { formatearPrecio, calcularDescuento, getSubcategoriaLabel, type Producto } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
 import NavBar from './NavBar';
 import Footer from './Footer';
@@ -99,6 +99,8 @@ export default function ProductDetail({ producto }: ProductDetailProps) {
   }, []);
 
   const agotado = producto.stockUnidades === 0;
+  const enOferta = producto.precioOriginal != null && producto.precioOriginal > producto.precio;
+  const descuento = enOferta ? calcularDescuento(producto.precio, producto.precioOriginal!) : 0;
 
   const talleActual = talleSeleccionado
     ? producto.talles?.find((t) => t.talle === talleSeleccionado)
@@ -242,13 +244,37 @@ Quedo atento. ¡Muchas gracias!`;
               {getSubcategoriaLabel(producto.categoria, producto.subcategoria)}
             </span>
 
+            {enOferta && (
+              <div className="mt-2 inline-block border border-[#16a34a] bg-[#22c55e] px-2.5 py-1">
+                <span className={`${mono.className} text-xs font-bold uppercase text-white`}>
+                  Oferta -{descuento}%
+                </span>
+              </div>
+            )}
+
             <h1 className={`${display.className} mt-2 text-[clamp(2rem,5vw,3.25rem)] leading-[0.95] tracking-tight`}>
               {producto.nombre}
             </h1>
 
-            <span className={`${mono.className} mt-4 block text-3xl font-bold`}>
-              {formatearPrecio(producto.precio)}
-            </span>
+            <div className="mt-4 flex items-center gap-3">
+              {enOferta ? (
+                <>
+                  <span className={`${mono.className} text-xl text-black/40 line-through`}>
+                    {formatearPrecio(producto.precioOriginal!)}
+                  </span>
+                  <span className={`${mono.className} text-3xl font-bold text-[#16a34a]`}>
+                    {formatearPrecio(producto.precio)}
+                  </span>
+                  <span className={`${mono.className} border border-[#16a34a] bg-[#22c55e]/10 px-2 py-0.5 text-xs font-bold uppercase text-[#16a34a]`}>
+                    -{descuento}%
+                  </span>
+                </>
+              ) : (
+                <span className={`${mono.className} text-3xl font-bold`}>
+                  {formatearPrecio(producto.precio)}
+                </span>
+              )}
+            </div>
 
             <div className="perforada my-5" />
 

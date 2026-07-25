@@ -1,7 +1,7 @@
 'use client';
 
 import { mono } from '@/lib/fonts';
-import { formatearPrecio, colorA_nombre, type Categoria } from '@/lib/products';
+import { formatearPrecio, calcularDescuento, colorA_nombre, type Categoria } from '@/lib/products';
 import { useCart, cartKey } from '@/lib/cart-context';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useAuthModal } from '@/lib/auth-modal-context';
@@ -23,6 +23,11 @@ interface SlideCartProps {
 export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
   const { items, removeItem, updateQuantity, clearCart } = useCart();
   const total = items.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+  const totalOriginal = items.reduce((sum, item) => {
+    const precioBase = item.producto.precioOriginal ?? item.producto.precio;
+    return sum + precioBase * item.cantidad;
+  }, 0);
+  const hayDescuentos = totalOriginal > total;
   const { isSignedIn } = useAuth();
   const { user } = useUser();
   const { openSignIn } = useAuthModal();
@@ -157,9 +162,23 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                           </p>
                         )}
                         <p className={`${mono.className} mt-0.5 text-[11px] text-black/50`}>{item.producto.descripcion}</p>
-                        <p className={`${mono.className} mt-1 text-base font-bold`}>
-                          {formatearPrecio(item.producto.precio * item.cantidad)}
-                        </p>
+                        {item.producto.precioOriginal != null && item.producto.precioOriginal > item.producto.precio ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className={`${mono.className} text-xs text-black/40 line-through`}>
+                              {formatearPrecio(item.producto.precioOriginal * item.cantidad)}
+                            </span>
+                            <span className={`${mono.className} text-base font-bold text-[#16a34a]`}>
+                              {formatearPrecio(item.producto.precio * item.cantidad)}
+                            </span>
+                            <span className={`${mono.className} border border-[#16a34a] bg-[#22c55e]/10 px-1 py-0.5 text-[9px] font-bold uppercase text-[#16a34a]`}>
+                              -{calcularDescuento(item.producto.precio, item.producto.precioOriginal)}%
+                            </span>
+                          </div>
+                        ) : (
+                          <p className={`${mono.className} mt-1 text-base font-bold`}>
+                            {formatearPrecio(item.producto.precio * item.cantidad)}
+                          </p>
+                        )}
                         <div className="flex items-center w-fit mt-5 border border-black rounded-lg overflow-hidden">
                           <button
                             onClick={() => updateQuantity(item.producto.id, Math.max(1, item.cantidad - 1), item.talle, item.color)}
@@ -193,9 +212,25 @@ export default function SlideCart({ abierto, cerrar }: SlideCartProps) {
                 </ul>
               </div>
               <div className="border-t border-black px-4 py-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>Total</span>
-                  <span className={`${mono.className} text-lg font-bold`}>{formatearPrecio(total)}</span>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>Total</span>
+                    {hayDescuentos ? (
+                      <>
+                        <span className={`${mono.className} text-xs text-black/40 line-through`}>{formatearPrecio(totalOriginal)}</span>
+                        <span className={`${mono.className} text-lg font-bold text-[#16a34a]`}>{formatearPrecio(total)}</span>
+                      </>
+                    ) : (
+                      <span className={`${mono.className} text-lg font-bold`}>{formatearPrecio(total)}</span>
+                    )}
+                  </div>
+                  {hayDescuentos && (
+                    <div className="flex justify-end">
+                      <span className={`${mono.className} border border-[#16a34a] bg-[#22c55e]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-[#16a34a]`}>
+                        Ahorrás {formatearPrecio(totalOriginal - total)}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={handleRealizarPedido}
