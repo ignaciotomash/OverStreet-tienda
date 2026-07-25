@@ -19,6 +19,7 @@ function mapProducto(db: {
   stockUnidades: number | null;
   vistas: number;
   imagenes: unknown;
+  creadoEn: Date;
 }): Producto {
   const imagenes = db.imagenes as string[];
   const talles = db.talles as { talle: string; disponible: boolean; stock?: number }[] | null;
@@ -40,6 +41,7 @@ function mapProducto(db: {
     vistas: db.vistas,
     imagenes: imagenes,
     foto: imagenes.length > 0 ? imagenes[0] : undefined,
+    creadoEn: db.creadoEn.toISOString(),
   };
 }
 

@@ -35,6 +35,7 @@ export interface Producto {
   vistas?: number;
   imagenes?: string[];
   foto?: string;
+  creadoEn?: string;
 }
 
 export const COLORES_MOCKUP = ['#000000', '#FFFFFF', '#C1272D', '#1E40AF'];

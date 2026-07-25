@@ -47,7 +47,12 @@ export default function Catalog({ categoria, subcategoriaInicial, onChangeCatego
       case 'precio-desc': return b.precio - a.precio;
       case 'vistas-asc': return (a.vistas ?? 0) - (b.vistas ?? 0);
       case 'vistas-desc': return (b.vistas ?? 0) - (a.vistas ?? 0);
-      default: return 0;
+      default: {
+        const aOferta = a.precioOriginal != null && a.precioOriginal > a.precio;
+        const bOferta = b.precioOriginal != null && b.precioOriginal > b.precio;
+        if (aOferta !== bOferta) return aOferta ? -1 : 1;
+        return new Date(b.creadoEn ?? 0).getTime() - new Date(a.creadoEn ?? 0).getTime();
+      }
     }
   });
 
