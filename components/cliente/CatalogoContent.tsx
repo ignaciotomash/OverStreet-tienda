@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { display, body, mono } from '@/lib/fonts';
 import type { Categoria, Producto } from '@/lib/products';
-import NavBar from '@/components/NavBar';
-import Marquee from '@/components/Marquee';
-import Catalog from '@/components/Catalog';
-import Footer from '@/components/Footer';
+import NavBar from '@/components/cliente/NavBar';
+import Marquee from '@/components/cliente/Marquee';
+import Catalog from '@/components/cliente/Catalog';
+import Footer from '@/components/cliente/Footer';
 
 interface CatalogoContentProps {
   productos: Producto[];

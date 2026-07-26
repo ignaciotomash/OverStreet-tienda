@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getProductoPorId } from '@/app/actions/actions';
-import ProductDetail from '@/components/ProductDetail';
+import ProductDetail from '@/components/cliente/ProductDetail';
 
 interface ProductoPageProps {
   params: Promise<{ id: string }>;

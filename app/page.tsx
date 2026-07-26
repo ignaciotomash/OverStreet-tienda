@@ -1,6 +1,6 @@
 'use client';
 
-import HomeContent from '@/components/HomeContent';
+import HomeContent from '@/components/cliente/HomeContent';
 
 export default function Page() {
   return <HomeContent />;

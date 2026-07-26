@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { mono, body } from '@/lib/fonts';
 import { formatearPrecio } from '@/lib/products';
 import { getPedidos, actualizarEstadoPedido, type Pedido, type PedidoItem } from '@/app/actions/actions';
-import Reveal from '../Reveal';
+import Reveal from '../../cliente/Reveal';
 
 const ESTADOS = ['pendiente', 'confirmado', 'enviado', 'entregado', 'cancelado'] as const;
 

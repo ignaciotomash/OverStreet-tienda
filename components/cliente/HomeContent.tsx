@@ -1,10 +1,10 @@
 'use client';
 
 import { display, body, mono } from '@/lib/fonts';
-import NavBar from '@/components/NavBar';
-import Hero from '@/components/Hero';
-import Marquee from '@/components/Marquee';
-import Footer from '@/components/Footer';
+import NavBar from '@/components/cliente/NavBar';
+import Hero from '@/components/cliente/Hero';
+import Marquee from '@/components/cliente/Marquee';
+import Footer from '@/components/cliente/Footer';
 
 export default function HomeContent() {
   return (

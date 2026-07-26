@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import SobreMiContent from '@/components/SobreMiContent';
+import SobreMiContent from '@/components/cliente/SobreMiContent';
 
 export const metadata: Metadata = {
   title: 'Sobre mi - OverStreet',

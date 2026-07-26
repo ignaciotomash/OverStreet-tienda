@@ -1,9 +1,9 @@
 'use client';
 
 import { display, body, mono } from '@/lib/fonts';
-import NavBar from '@/components/NavBar';
-import Footer from '@/components/Footer';
-import Reveal from '@/components/Reveal';
+import NavBar from '@/components/cliente/NavBar';
+import Footer from '@/components/cliente/Footer';
+import Reveal from '@/components/cliente/Reveal';
 
 const CONTACTOS = [
   {

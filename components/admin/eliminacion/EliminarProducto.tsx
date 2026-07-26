@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { mono } from '@/lib/fonts';
 import { getSubcategoriasCompletas, type Categoria, type Producto } from '@/lib/products';
 import { getProductos, deleteProducto } from '@/app/actions/actions';
-import ProductCard from '../ProductCard';
-import Reveal from '../Reveal';
+import ProductCard from '../../cliente/ProductCard';
+import Reveal from '../../cliente/Reveal';
 
 const TODOS = 'todos';
 

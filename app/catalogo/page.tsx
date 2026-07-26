@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import CatalogoContent from '@/components/CatalogoContent';
+import CatalogoContent from '@/components/cliente/CatalogoContent';
 import { getProductos } from '@/app/actions/actions';
 
 export const dynamic = 'force-dynamic';

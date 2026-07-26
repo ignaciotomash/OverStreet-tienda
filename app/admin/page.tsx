@@ -3,8 +3,8 @@
 import { Suspense } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { display, body, mono } from '@/lib/fonts';
-import NavBar from '@/components/NavBar';
-import AdminTabs from '@/components/admin/AdminTabs';
+import NavBar from '@/components/cliente/NavBar';
+import AdminTabs from '@/components/admin/general/AdminTabs';
 
 export default function AdminPage() {
   const { user, isLoaded } = useUser();

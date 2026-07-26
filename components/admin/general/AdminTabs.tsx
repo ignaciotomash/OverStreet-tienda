@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { mono } from '@/lib/fonts';
-import CrearProducto from './CrearProducto';
-import EditarProducto from './EditarProducto';
-import EliminarProducto from './EliminarProducto';
-import CuentasRegistradas from './CuentasRegistradas';
-import HistorialPedidos from './HistorialPedidos';
+import CrearProducto from '../creacion/CrearProducto';
+import EditarProducto from '../edicion/EditarProducto';
+import EliminarProducto from '../eliminacion/EliminarProducto';
+import CuentasRegistradas from '../cuentas-registradas/CuentasRegistradas';
+import HistorialPedidos from '../pedidos/HistorialPedidos';
 
 type Tab = 'crear' | 'editar' | 'eliminar' | 'cuentas' | 'pedidos';
 
