@@ -84,7 +84,7 @@ export default function ListaProductos({
           </Reveal>
 
           <Reveal delay={40}>
-            <div className="mb-8 flex flex-wrap items-center justify-center gap-2 sm:justify-start" role="group" aria-label="Filtrar por subcategoría">
+            <div className="mb-8 subcat-scroll items-center" role="group" aria-label="Filtrar por subcategoría">
               <button
                 onClick={() => onSubcategoriaChange(TODOS)}
                 aria-pressed={subcategoria === TODOS}

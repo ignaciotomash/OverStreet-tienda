@@ -111,7 +111,7 @@ export default function Catalog({ categoria, subcategoriaInicial, onChangeCatego
 
       <Reveal delay={40}>
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" role="group" aria-label="Filtrar por subcategoría">
-          <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+          <div className="subcat-scroll">
             <button
               onClick={() => setSubcategoria(TODOS)}
               aria-pressed={subcategoria === TODOS}

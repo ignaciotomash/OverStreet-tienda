@@ -63,6 +63,22 @@ body {
   }
 }
 
+.subcat-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 0.5rem;
+  scrollbar-width: none;
+}
+.subcat-scroll::-webkit-scrollbar {
+  display: none;
+}
+.subcat-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
 ::selection {
   background: black;
   color: white;
