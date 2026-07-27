@@ -98,6 +98,10 @@ export function useProductFields(categoriaInicial: Categoria = 'indumentaria', s
     setDetalles((prev) => prev.filter((d) => d !== detalle));
   }, []);
 
+  const limpiarTalles = useCallback(() => {
+    setTalles(TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true })));
+  }, []);
+
   const limpiarCampos = useCallback(() => {
     setCategoria(categoriaInicial);
     setSubcategoria(subcatInicial);
@@ -155,6 +159,7 @@ export function useProductFields(categoriaInicial: Categoria = 'indumentaria', s
     eliminarColor,
     agregarDetalle,
     eliminarDetalle,
+    limpiarTalles,
     limpiarCampos,
   };
 }

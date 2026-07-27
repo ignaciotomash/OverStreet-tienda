@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { type Producto } from '@/lib/products';
 import { subirImagen } from '@/lib/upload';
 import { updateProducto } from '@/app/actions/actions';
@@ -44,7 +44,7 @@ export function useEdicionForm({
     fields.setNuevoDetalle('');
   }, [fields]);
 
-  const formValido = useCallback(() => {
+  const formValido = useMemo(() => {
     if (existentes.length === 0 && archivos.length === 0) return false;
     if (!fields.nombre || !fields.precio || !fields.descripcion || !fields.descripcionLarga || fields.detalles.length === 0) return false;
     if (fields.categoria === 'indumentaria' && fields.talles.length === 0) return false;
@@ -53,7 +53,7 @@ export function useEdicionForm({
   }, [existentes, archivos, fields.nombre, fields.precio, fields.descripcion, fields.descripcionLarga, fields.detalles, fields.categoria, fields.talles, fields.stockUnidades]);
 
   const handleSubmit = useCallback(async () => {
-    if (!formValido() || !productoSeleccionado) return;
+    if (!formValido || !productoSeleccionado) return;
 
     setSubiendo(true);
 
@@ -156,6 +156,7 @@ export function useEdicionForm({
     actualizarStockTalle: fields.actualizarStockTalle,
     agregarTalle: fields.agregarTalle,
     eliminarTalle: fields.eliminarTalle,
+    limpiarTalles: fields.limpiarTalles,
     eliminarColor: fields.eliminarColor,
     agregarDetalle: fields.agregarDetalle,
     eliminarDetalle: fields.eliminarDetalle,

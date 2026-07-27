@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { subirImagen } from '@/lib/upload';
 import { createProducto } from '@/app/actions/actions';
 import { useProductFields } from './useProductFields';
@@ -14,7 +14,7 @@ export function useCreacionForm({ archivos, mostrarMensaje }: UseCreacionFormPar
   const fields = useProductFields();
   const [subiendo, setSubiendo] = useState(false);
 
-  const formValido = useCallback(() => {
+  const formValido = useMemo(() => {
     if (archivos.length === 0) return false;
     if (!fields.nombre || !fields.precio || !fields.descripcion || !fields.descripcionLarga || fields.detalles.length === 0) return false;
     if (fields.categoria === 'indumentaria' && fields.talles.length === 0) return false;
@@ -23,7 +23,7 @@ export function useCreacionForm({ archivos, mostrarMensaje }: UseCreacionFormPar
   }, [archivos, fields.nombre, fields.precio, fields.descripcion, fields.descripcionLarga, fields.detalles, fields.categoria, fields.talles, fields.stockUnidades]);
 
   const handleSubmit = useCallback(async () => {
-    if (!formValido() || archivos.length === 0) return;
+    if (!formValido || archivos.length === 0) return;
 
     setSubiendo(true);
 

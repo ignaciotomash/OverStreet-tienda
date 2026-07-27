@@ -13,8 +13,6 @@ import FormularioEdicion from './FormularioEdicion';
 const TODOS = 'todos';
 type Paso = 'seleccion' | 'edicion';
 
-const TALLES_DEFAULT = ['S', 'M', 'L', 'XL', 'XXL'];
-
 export default function EditarProducto() {
   const [paso, setPaso] = useState<Paso>('seleccion');
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -68,39 +66,13 @@ export default function EditarProducto() {
     setPaso('edicion');
   }, [edicion, imagenes]);
 
-  const handleCategoriaEditChange = useCallback((cat: Categoria) => {
-    edicion.setEditCategoria(cat);
-    const base = getSubcategoriasCompletas(cat, productos);
-    edicion.setEditSubcategoria(base[0]?.value ?? '');
-  }, [edicion, productos]);
-
-  const eliminarSubcatExtraEdit = useCallback(() => {
-    const result = subcatExtras.eliminarSubcatExtra(
-      edicion.editCategoria,
-      edicion.editSubcategoria,
-      productos,
-    );
-    if (result !== null) {
-      edicion.setEditSubcategoria(result);
-    }
-  }, [subcatExtras, edicion, productos]);
+  const handleVolver = useCallback(() => {
+    setPaso('seleccion');
+    imagenes.limpiar();
+  }, [imagenes]);
 
   const editSubBase = getSubcategoriasCompletas(edicion.editCategoria, productos);
   const editSubcategorias = subcatExtras.obtenerSubcategorias(edicion.editCategoria, productos);
-
-  const imagenProps = {
-    existentes: imagenes.existentes,
-    previews: imagenes.previews,
-    arrastrando: imagenes.arrastrando,
-    convirtiendo: imagenes.convirtiendo,
-    fileInputRef: imagenes.fileInputRef,
-    onDragOver: imagenes.handleDragOver,
-    onDragLeave: imagenes.handleDragLeave,
-    onDrop: imagenes.handleDrop,
-    onFileChange: imagenes.handleFileChange,
-    onEliminarExistente: imagenes.eliminarExistente,
-    onEliminarArchivo: imagenes.eliminarArchivo,
-  };
 
   if (paso === 'seleccion') {
     return (
@@ -123,57 +95,14 @@ export default function EditarProducto() {
 
   return (
     <FormularioEdicion
-      editCategoria={edicion.editCategoria}
-      editSubcategoria={edicion.editSubcategoria}
-      nombre={edicion.nombre}
-      precio={edicion.precio}
-      enOferta={edicion.enOferta}
-      precioOferta={edicion.precioOferta}
-      descripcion={edicion.descripcion}
-      descripcionLarga={edicion.descripcionLarga}
-      talles={edicion.talles}
-      nuevoTalle={edicion.nuevoTalle}
-      colores={edicion.colores}
-      talleActivo={edicion.talleActivo}
-      detalles={edicion.detalles}
-      nuevoDetalle={edicion.nuevoDetalle}
-      stockUnidades={edicion.stockUnidades}
+      edicion={edicion}
+      imagenes={imagenes}
+      toast={toast}
       editSubcategorias={editSubcategorias}
       editSubBase={editSubBase}
       productos={productos}
-      formValido={edicion.formValido()}
-      subiendo={edicion.subiendo}
-      convirtiendo={imagenes.convirtiendo}
-      onVolver={() => {
-        setPaso('seleccion');
-        imagenes.limpiar();
-      }}
-      onCategoriaChange={handleCategoriaEditChange}
-      onSubcategoriaChange={edicion.setEditSubcategoria}
-      onNombreChange={edicion.setNombre}
-      onPrecioChange={edicion.setPrecio}
-      onEnOfertaChange={edicion.setEnOferta}
-      onPrecioOfertaChange={edicion.setPrecioOferta}
-      onDescripcionChange={edicion.setDescripcion}
-      onDescripcionLargaChange={edicion.setDescripcionLarga}
-      onToggleTalle={edicion.toggleTalle}
-      onNuevoTalleChange={edicion.setNuevoTalle}
-      onAgregarTalle={edicion.agregarTalle}
-      onEliminarTalle={edicion.eliminarTalle}
-      onActualizarStockTalle={edicion.actualizarStockTalle}
-      onSeleccionarTalleActivo={edicion.seleccionarTalleActivo}
-      onEliminarColor={edicion.eliminarColor}
-      onColoresChange={edicion.setColores}
-      onLimpiarTalles={() => edicion.setTalles(TALLES_DEFAULT.map((t) => ({ talle: t, disponible: true })))}
-      onAgregarDetalle={edicion.agregarDetalle}
-      onEliminarDetalle={edicion.eliminarDetalle}
-      onNuevoDetalleChange={edicion.setNuevoDetalle}
-      onStockUnidadesChange={edicion.setStockUnidades}
-      onEliminarSubcatExtra={eliminarSubcatExtraEdit}
-      onSubmit={edicion.handleSubmit}
-      mensaje={toast.mensaje}
-      visible={toast.visible}
-      imagenProps={imagenProps}
+      subcatExtras={subcatExtras}
+      onVolver={handleVolver}
     />
   );
 }

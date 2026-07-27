@@ -1,139 +1,81 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { mono, body } from '@/lib/fonts';
-import { COLORES_PREDEFINIDOS, COLORES_CLAROS, type Categoria, type Producto, type Talle, type SubcategoriaOpcion } from '@/lib/products';
+import { COLORES_PREDEFINIDOS, COLORES_CLAROS, getSubcategoriasCompletas, type Categoria, type Producto, type SubcategoriaOpcion } from '@/lib/products';
+import { type useCreacionForm } from '@/hooks/useCreacionForm';
+import { type useImageUpload } from '@/hooks/useImageUpload';
+import { type useSubcatExtras } from '@/hooks/useSubcatExtras';
 import ZonaImagenes from '../general/ZonaImagenes';
 import NuevaSubcategoriaInput from './NuevaSubcategoriaInput';
 
 interface FormularioCreacionProps {
-  categoria: Categoria;
-  subcategoria: string;
-  nombre: string;
-  precio: string;
-  enOferta: boolean;
-  precioOferta: string;
-  descripcion: string;
-  descripcionLarga: string;
-  talles: Talle[];
-  nuevoTalle: string;
-  colores: string[];
-  talleActivo: string | null;
-  detalles: string[];
-  nuevoDetalle: string;
-  stockUnidades: string;
+  creacion: ReturnType<typeof useCreacionForm>;
+  imagenes: ReturnType<typeof useImageUpload>;
+  toast: { mensaje: { tipo: 'exito' | 'error'; texto: string } | null; visible: boolean };
   subcategorias: SubcategoriaOpcion[];
   subBase: SubcategoriaOpcion[];
   productos: Producto[];
-  formValido: boolean;
-  subiendo: boolean;
-  convirtiendo: boolean;
-  onCategoriaChange: (cat: Categoria) => void;
-  onSubcategoriaChange: (sub: string) => void;
-  onNombreChange: (v: string) => void;
-  onPrecioChange: (v: string) => void;
-  onEnOfertaChange: (v: boolean) => void;
-  onPrecioOfertaChange: (v: string) => void;
-  onDescripcionChange: (v: string) => void;
-  onDescripcionLargaChange: (v: string) => void;
-  onToggleTalle: (t: string) => void;
-  onNuevoTalleChange: (v: string) => void;
-  onAgregarTalle: () => void;
-  onEliminarTalle: (t: string) => void;
-  onActualizarStockTalle: (t: string, s: string) => void;
-  onSeleccionarTalleActivo: (t: string) => void;
-  onEliminarColor: (c: string) => void;
-  onColoresChange: React.Dispatch<React.SetStateAction<string[]>>;
-  onLimpiarTalles: () => void;
-  onAgregarDetalle: () => void;
-  onEliminarDetalle: (d: string) => void;
-  onNuevoDetalleChange: (v: string) => void;
-  onStockUnidadesChange: (v: string) => void;
-  onEliminarSubcatExtra: () => void;
-  onAgregarSubcat: (categoria: Categoria, sub: SubcategoriaOpcion) => void;
-  onSubmit: () => void;
-  mensaje: { tipo: 'exito' | 'error'; texto: string } | null;
-  visible: boolean;
-  imagenProps: {
-    existentes: string[];
-    previews: string[];
-    arrastrando: boolean;
-    convirtiendo: boolean;
-    fileInputRef: React.RefObject<HTMLInputElement | null>;
-    onDragOver: (e: React.DragEvent) => void;
-    onDragLeave: (e: React.DragEvent) => void;
-    onDrop: (e: React.DragEvent) => void;
-    onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onEliminarExistente: (index: number) => void;
-    onEliminarArchivo: (index: number) => void;
-  };
+  subcatExtras: ReturnType<typeof useSubcatExtras>;
 }
 
 export default function FormularioCreacion({
-  categoria,
-  subcategoria,
-  nombre,
-  precio,
-  enOferta,
-  precioOferta,
-  descripcion,
-  descripcionLarga,
-  talles,
-  nuevoTalle,
-  colores,
-  talleActivo,
-  detalles,
-  nuevoDetalle,
-  stockUnidades,
+  creacion,
+  imagenes,
+  toast,
   subcategorias,
   subBase,
   productos,
-  formValido,
-  subiendo,
-  convirtiendo,
-  onCategoriaChange,
-  onSubcategoriaChange,
-  onNombreChange,
-  onPrecioChange,
-  onEnOfertaChange,
-  onPrecioOfertaChange,
-  onDescripcionChange,
-  onDescripcionLargaChange,
-  onToggleTalle,
-  onNuevoTalleChange,
-  onAgregarTalle,
-  onEliminarTalle,
-  onActualizarStockTalle,
-  onSeleccionarTalleActivo,
-  onEliminarColor,
-  onColoresChange,
-  onLimpiarTalles,
-  onAgregarDetalle,
-  onEliminarDetalle,
-  onNuevoDetalleChange,
-  onStockUnidadesChange,
-  onEliminarSubcatExtra,
-  onAgregarSubcat,
-  onSubmit,
-  mensaje,
-  visible,
-  imagenProps,
+  subcatExtras,
 }: FormularioCreacionProps) {
   const [mostrarInputSub, setMostrarInputSub] = useState(false);
+
+  const handleCategoriaChange = useCallback((cat: Categoria) => {
+    creacion.setCategoria(cat);
+    const base = getSubcategoriasCompletas(cat, productos);
+    const extras = subcatExtras.subcatExtras[cat].filter(
+      (extra) => !base.find((s) => s.value === extra.value),
+    );
+    creacion.setSubcategoria([...base, ...extras][0]?.value ?? '');
+  }, [creacion, productos, subcatExtras]);
+
+  const handleEliminarSubcatExtra = useCallback(() => {
+    const result = subcatExtras.eliminarSubcatExtra(
+      creacion.categoria,
+      creacion.subcategoria,
+      productos,
+    );
+    if (result !== null) {
+      creacion.setSubcategoria(result);
+    }
+  }, [subcatExtras, creacion, productos]);
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
       <div>
-        <ZonaImagenes variant="create" {...imagenProps} />
+        <ZonaImagenes
+          variant="create"
+          existentes={imagenes.existentes}
+          previews={imagenes.previews}
+          arrastrando={imagenes.arrastrando}
+          convirtiendo={imagenes.convirtiendo}
+          fileInputRef={imagenes.fileInputRef}
+          onDragOver={imagenes.handleDragOver}
+          onDragLeave={imagenes.handleDragLeave}
+          onDrop={imagenes.handleDrop}
+          onFileChange={imagenes.handleFileChange}
+          onEliminarExistente={imagenes.eliminarExistente}
+          onEliminarArchivo={imagenes.eliminarArchivo}
+        />
       </div>
 
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <div className="flex gap-3">
             <select
-              value={categoria}
+              value={creacion.categoria}
               onChange={(e) => {
-                onCategoriaChange(e.target.value as Categoria);
+                handleCategoriaChange(e.target.value as Categoria);
                 setMostrarInputSub(false);
               }}
               className={`${mono.className} flex-1 border border-black bg-transparent px-3 py-2 text-xs uppercase tracking-wider`}
@@ -143,8 +85,8 @@ export default function FormularioCreacion({
               <option value="perfumeria">Perfumería</option>
             </select>
             <select
-              value={subcategoria}
-              onChange={(e) => onSubcategoriaChange(e.target.value)}
+              value={creacion.subcategoria}
+              onChange={(e) => creacion.setSubcategoria(e.target.value)}
               className={`${mono.className} flex-1 border border-black bg-transparent px-3 py-2 text-xs uppercase tracking-wider`}
             >
               {subcategorias.map((sub) => (
@@ -162,8 +104,8 @@ export default function FormularioCreacion({
             </button>
             <button
               type="button"
-              onClick={onEliminarSubcatExtra}
-              disabled={subBase.some((s) => s.value === subcategoria) || productos.some((p) => p.categoria === categoria && p.subcategoria === subcategoria)}
+              onClick={handleEliminarSubcatExtra}
+              disabled={subBase.some((s) => s.value === creacion.subcategoria) || productos.some((p) => p.categoria === creacion.categoria && p.subcategoria === creacion.subcategoria)}
               className={`${mono.className} flex h-10 w-10 shrink-0 items-center justify-center border border-black bg-black/5 text-sm text-black transition-colors hover:bg-black/10 disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               ×
@@ -172,10 +114,10 @@ export default function FormularioCreacion({
 
           {mostrarInputSub && (
             <NuevaSubcategoriaInput
-              categoria={categoria}
+              categoria={creacion.categoria}
               subcategorias={subcategorias}
-              onAgregarSubcat={onAgregarSubcat}
-              onSubcategoriaChange={(v) => { onSubcategoriaChange(v); setMostrarInputSub(false); }}
+              onAgregarSubcat={subcatExtras.agregarSubcat}
+              onSubcategoriaChange={(v) => { creacion.setSubcategoria(v); setMostrarInputSub(false); }}
               onCerrar={() => setMostrarInputSub(false)}
             />
           )}
@@ -184,16 +126,16 @@ export default function FormularioCreacion({
         <input
           type="text"
           placeholder="Nombre del producto"
-          value={nombre}
-          onChange={(e) => onNombreChange(e.target.value)}
+          value={creacion.nombre}
+          onChange={(e) => creacion.setNombre(e.target.value)}
           className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
         />
 
         <input
           type="number"
           placeholder="Precio"
-          value={precio}
-          onChange={(e) => onPrecioChange(e.target.value)}
+          value={creacion.precio}
+          onChange={(e) => creacion.setPrecio(e.target.value)}
           className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
         />
 
@@ -201,10 +143,10 @@ export default function FormularioCreacion({
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
-              checked={enOferta}
+              checked={creacion.enOferta}
               onChange={(e) => {
-                onEnOfertaChange(e.target.checked);
-                onPrecioOfertaChange('');
+                creacion.setEnOferta(e.target.checked);
+                creacion.setPrecioOferta('');
               }}
               className="h-4 w-4 accent-[#16a34a]"
             />
@@ -212,12 +154,12 @@ export default function FormularioCreacion({
               Este producto está en oferta
             </span>
           </label>
-          {enOferta && (
+          {creacion.enOferta && (
             <input
               type="number"
               placeholder="Precio de oferta"
-              value={precioOferta}
-              onChange={(e) => onPrecioOfertaChange(e.target.value)}
+              value={creacion.precioOferta}
+              onChange={(e) => creacion.setPrecioOferta(e.target.value)}
               className={`${mono.className} border border-[#16a34a]/30 bg-[#22c55e]/5 px-3 py-2 text-xs`}
             />
           )}
@@ -226,30 +168,30 @@ export default function FormularioCreacion({
         <input
           type="text"
           placeholder="Descripción corta"
-          value={descripcion}
-          onChange={(e) => onDescripcionChange(e.target.value)}
+          value={creacion.descripcion}
+          onChange={(e) => creacion.setDescripcion(e.target.value)}
           className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs`}
         />
 
         <textarea
           placeholder="Descripción larga"
-          value={descripcionLarga}
-          onChange={(e) => onDescripcionLargaChange(e.target.value)}
+          value={creacion.descripcionLarga}
+          onChange={(e) => creacion.setDescripcionLarga(e.target.value)}
           rows={10}
           className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs resize-none`}
         />
 
-        {categoria === 'indumentaria' && (
+        {creacion.categoria === 'indumentaria' && (
           <div>
             <span className={`${mono.className} text-xs uppercase tracking-wide text-black/50`}>
               Talles
             </span>
             <div className="mt-2 flex flex-wrap gap-2">
-              {talles.map((t) => (
+              {creacion.talles.map((t) => (
                 <div key={t.talle} className="flex min-w-[140px] items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => onToggleTalle(t.talle)}
+                    onClick={() => creacion.toggleTalle(t.talle)}
                     className={`${mono.className} flex h-9 min-w-9 items-center justify-center border px-2 text-sm transition-colors ${
                       t.disponible
                         ? 'border-black bg-black text-white'
@@ -263,12 +205,12 @@ export default function FormularioCreacion({
                     min={0}
                     placeholder="Stock"
                     value={t.stock ?? ''}
-                    onChange={(e) => onActualizarStockTalle(t.talle, e.target.value)}
+                    onChange={(e) => creacion.actualizarStockTalle(t.talle, e.target.value)}
                     className={`${mono.className} h-9 w-14 border border-black/20 bg-transparent px-1.5 text-center text-xs`}
                   />
                   <button
                     type="button"
-                    onClick={() => onEliminarTalle(t.talle)}
+                    onClick={() => creacion.eliminarTalle(t.talle)}
                     className="text-xs text-black/30 hover:text-black"
                   >
                     ×
@@ -279,16 +221,16 @@ export default function FormularioCreacion({
                 <input
                   type="text"
                   placeholder="+"
-                  value={nuevoTalle}
-                  onChange={(e) => onNuevoTalleChange(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && onAgregarTalle()}
+                  value={creacion.nuevoTalle}
+                  onChange={(e) => creacion.setNuevoTalle(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && creacion.agregarTalle()}
                   className={`${mono.className} h-9 w-12 border border-black/20 bg-transparent px-2 text-center text-sm`}
                 />
               </div>
             </div>
             <button
               type="button"
-              onClick={onLimpiarTalles}
+              onClick={creacion.limpiarTalles}
               className={`${mono.className} mt-2 border border-black/15 bg-black/5 px-3 py-1.5 text-[10px] uppercase tracking-wider text-black/40 transition-colors hover:border-black/30 hover:text-black`}
             >
               Limpiar
@@ -301,19 +243,19 @@ export default function FormularioCreacion({
             Colores
           </span>
 
-          {categoria === 'indumentaria' && (
+          {creacion.categoria === 'indumentaria' && (
             <div className="mt-2">
               <span className={`${mono.className} text-[10px] uppercase tracking-wider text-black/40`}>
                 Asignar colores a talle:
               </span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {talles.map((t) => (
+                {creacion.talles.map((t) => (
                   <button
                     key={t.talle}
                     type="button"
-                    onClick={() => onSeleccionarTalleActivo(t.talle)}
+                    onClick={() => creacion.seleccionarTalleActivo(t.talle)}
                     className={`${mono.className} flex h-8 min-w-8 items-center justify-center border px-2 text-xs transition-all ${
-                      talleActivo === t.talle
+                      creacion.talleActivo === t.talle
                         ? 'border-black bg-black text-white'
                         : t.colores && t.colores.length > 0
                           ? 'border-black/40 bg-black/5 text-black'
@@ -321,22 +263,22 @@ export default function FormularioCreacion({
                     }`}
                   >
                     {t.talle}
-                    {t.colores && t.colores.length > 0 && talleActivo !== t.talle && (
+                    {t.colores && t.colores.length > 0 && creacion.talleActivo !== t.talle && (
                       <span className="ml-1 h-1.5 w-1.5 rounded-full bg-black/40" />
                     )}
                   </button>
                 ))}
               </div>
-              {talleActivo && (
+              {creacion.talleActivo && (
                 <p className={`${mono.className} mt-1.5 text-[10px] text-black/40`}>
-                  Editando colores del talle {talleActivo}
+                  Editando colores del talle {creacion.talleActivo}
                 </p>
               )}
             </div>
           )}
 
           <div className="mt-2 flex flex-wrap gap-2">
-            {colores.map((color) => (
+            {creacion.colores.map((color) => (
               <div key={color} className="flex items-center gap-1">
                 <span
                   className="h-7 w-7 rounded-full border-2 border-black/20"
@@ -344,7 +286,7 @@ export default function FormularioCreacion({
                 />
                 <button
                   type="button"
-                  onClick={() => onEliminarColor(color)}
+                  onClick={() => creacion.eliminarColor(color)}
                   className="text-xs text-black/30 hover:text-black"
                 >
                   ×
@@ -354,16 +296,16 @@ export default function FormularioCreacion({
           </div>
           <div className="mt-3 grid grid-cols-8 gap-1.5 sm:grid-cols-16 md:grid-cols-16">
             {COLORES_PREDEFINIDOS.map((color) => {
-              const seleccionado = colores.includes(color.hex);
+              const seleccionado = creacion.colores.includes(color.hex);
               return (
                 <button
                   key={color.hex}
                   type="button"
                   onClick={() => {
                     if (seleccionado) {
-                      onEliminarColor(color.hex);
+                      creacion.eliminarColor(color.hex);
                     } else {
-                      onColoresChange((prev) => [...prev, color.hex]);
+                      creacion.setColores((prev) => [...prev, color.hex]);
                     }
                   }}
                   title={color.nombre}
@@ -385,7 +327,7 @@ export default function FormularioCreacion({
           </div>
           <button
             type="button"
-            onClick={() => onColoresChange([])}
+            onClick={() => creacion.setColores([])}
             className={`${mono.className} mt-2 border border-black/15 bg-black/5 px-3 py-1.5 text-[10px] uppercase tracking-wider text-black/40 transition-colors hover:border-black/30 hover:text-black`}
           >
             Limpiar
@@ -397,7 +339,7 @@ export default function FormularioCreacion({
             Detalles
           </span>
           <div className="mt-2 flex flex-col gap-1">
-            {detalles.map((detalle) => (
+            {creacion.detalles.map((detalle) => (
               <div key={detalle} className="flex items-center gap-2">
                 <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-black" />
                 <span className={`${body.className} flex-1 text-sm text-black/70`}>
@@ -405,7 +347,7 @@ export default function FormularioCreacion({
                 </span>
                 <button
                   type="button"
-                  onClick={() => onEliminarDetalle(detalle)}
+                  onClick={() => creacion.eliminarDetalle(detalle)}
                   className={`${mono.className} flex h-9 w-9 shrink-0 items-center justify-center border border-black/15 text-xs text-black/30 transition-colors hover:border-black/40 hover:text-black`}
                 >
                   ×
@@ -416,15 +358,15 @@ export default function FormularioCreacion({
               <input
                 type="text"
                 placeholder="Agregar detalle..."
-                value={nuevoDetalle}
-                onChange={(e) => onNuevoDetalleChange(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && onAgregarDetalle()}
-                onBlur={onAgregarDetalle}
+                value={creacion.nuevoDetalle}
+                onChange={(e) => creacion.setNuevoDetalle(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && creacion.agregarDetalle()}
+                onBlur={creacion.agregarDetalle}
                 className={`${mono.className} flex-1 border border-black/20 bg-transparent px-2 py-1 text-xs`}
               />
               <button
                 type="button"
-                onClick={onAgregarDetalle}
+                onClick={creacion.agregarDetalle}
                 className={`${mono.className} flex h-9 w-9 shrink-0 items-center justify-center border border-black/20 text-sm text-black/50 transition-colors hover:border-black hover:text-black`}
               >
                 +
@@ -436,33 +378,33 @@ export default function FormularioCreacion({
         <input
           type="number"
           placeholder="Unidades en stock"
-          value={stockUnidades}
-          onChange={(e) => onStockUnidadesChange(e.target.value)}
-          readOnly={categoria === 'indumentaria'}
-          className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs ${categoria === 'indumentaria' ? 'bg-black/5 cursor-not-allowed' : ''}`}
+          value={creacion.stockUnidades}
+          onChange={(e) => creacion.setStockUnidades(e.target.value)}
+          readOnly={creacion.categoria === 'indumentaria'}
+          className={`${mono.className} border border-black bg-transparent px-3 py-2 text-xs ${creacion.categoria === 'indumentaria' ? 'bg-black/5 cursor-not-allowed' : ''}`}
         />
 
-        {mensaje && (
+        {toast.mensaje && (
           <div
             className={`${mono.className} fixed right-5 top-24 z-50 border px-4 py-3 text-xs uppercase tracking-wider shadow-lg transition-opacity duration-300 ${
-              visible ? 'opacity-100' : 'opacity-0'
+              toast.visible ? 'opacity-100' : 'opacity-0'
             } ${
-              mensaje.tipo === 'exito'
+              toast.mensaje.tipo === 'exito'
                 ? 'border-green-600/30 bg-green-600/10 text-green-700'
                 : 'border-[#C1272D]/30 bg-[#C1272D]/10 text-[#C1272D]'
             }`}
           >
-            {mensaje.texto}
+            {toast.mensaje.texto}
           </div>
         )}
 
         <div className="flex justify-end">
           <button
-            onClick={onSubmit}
-            disabled={!formValido || subiendo || convirtiendo}
+            onClick={creacion.handleSubmit}
+            disabled={!creacion.formValido || creacion.subiendo || imagenes.convirtiendo}
             className={`${mono.className} border border-black bg-black px-8 py-3 text-xs uppercase tracking-wider text-white transition-colors hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-black disabled:hover:text-white`}
           >
-            {convirtiendo ? 'Convirtiendo...' : subiendo ? 'Subiendo...' : 'Subir producto'}
+            {imagenes.convirtiendo ? 'Convirtiendo...' : creacion.subiendo ? 'Subiendo...' : 'Subir producto'}
           </button>
         </div>
       </div>
